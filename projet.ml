@@ -90,7 +90,7 @@ type valuation = (string * int) list;;
 let rec get_value var valuation =
    match valuation with
   | [] -> 0
-  | (v , value) :: rl -> if (v = var) then value else get_value_of_var var rl
+  | (v , value) :: rl -> if (v = var) then value else get_value var rl
 ;;
 
 let rec ainterp expr valuation =
