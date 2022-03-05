@@ -33,7 +33,7 @@ Const of int
 ;;
 
 
-(*** Ajouter en plus ce n'est pas demandé ****)
+(*** Ajouter en plus ce n'est pas demandï¿½ ****)
 let rec calcul = function
   | Const n -> n
   | Mult (e1, e2) -> calcul e1 * calcul e2
@@ -117,3 +117,6 @@ ainterp expr6 my_valuation;;
 ainterp expr7 my_valuation;;
 ainterp expr8 my_valuation;;
 ainterp expr9 my_valuation;;
+
+
+(***test commit *****)
