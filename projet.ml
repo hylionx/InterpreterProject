@@ -181,7 +181,7 @@ bexp_to_string bexp4_3;;
 (*** Question 4:   ***)
 
 let opOr x y = 
-  match x y with
+  match (x, y) with
   | (true, true) -> true
   | (true, false) -> true 
   | (false, true) -> true 
@@ -189,7 +189,7 @@ let opOr x y =
 ;;
 
 let opAnd x y = 
-  match x y with
+  match (x, y) with
   | (true, true) -> true
   | (_, _) -> false 
 ;;
@@ -199,21 +199,31 @@ let opNot x =
   | true -> false
   | false -> true
 ;;
-(*
-let opEqual x y =
-  (x = y)
-;;
-
-let opInfEqual x y =
-  (x <= y)
-    ;;*)
 
 let rec binterp bxpr valu =
   match bxpr with
   | Const x  ->  x
-  | Or (x,y) -> opOr(x, y)
-  | End (x,y) -> opAnd(x, y)
-  | Not x -> opNot x
-  | Equal (x,y) -> true
-  | InfEqual (x,y) -> true
+  | Or (x,y) -> opOr (binterp x valu) (binterp x valu)
+  | End (x,y) -> opAnd (binterp x valu) (binterp y valu)
+  | Not x -> opNot (binterp x valu)
+  | Equal (x,y) -> (ainterp x valu) = (ainterp y valu)
+  | InfEqual (x,y) ->(ainterp x valu) <= (ainterp y valu)
 ;;
+
+(*** Question 5:   ***)
+
+
+let my_valuation_1_2 : valuation = [("x", 7); ("y", 3)];;
+
+(*** interpretations ***)
+
+binterp bexp1 my_valuation_1_2;; (* true *)
+binterp bexp2_1 my_valuation_1_2;; (* false *)
+binterp bexp2_2 my_valuation_1_2;; (* fasle *)
+binterp bexp2_3 my_valuation_1_2;; (* true *)
+binterp bexp3_1 my_valuation_1_2;; (* false *)
+binterp bexp3_2 my_valuation_1_2;; (* true *)
+binterp bexp3_3 my_valuation_1_2;; (* false *)
+binterp bexp4_1 my_valuation_1_2;; (* true *) 
+binterp bexp4_2 my_valuation_1_2;; (* true *) 
+binterp bexp4_3 my_valuation_1_2;; (* true *)
