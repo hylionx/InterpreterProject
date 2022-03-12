@@ -227,3 +227,45 @@ binterp bexp3_3 my_valuation_1_2;; (* false *)
 binterp bexp4_1 my_valuation_1_2;; (* true *) 
 binterp bexp4_2 my_valuation_1_2;; (* true *) 
 binterp bexp4_3 my_valuation_1_2;; (* true *)
+
+
+(* 1.3.1 Syntaxe abstraite  *) 
+
+(* Question 1 *)
+
+type prog = 
+  Repeat of aexpr * prog
+  | Skip 
+  | Affect of string * aexpr
+  | Lines of prog * prog
+  | Cond of bexpr * prog * prog
+;;
+
+(* Question 2 *)
+
+let prog1 = Lines(Affect("y", (Const 7)), Skip)  ;; (* y := 7 *)
+
+let prog2 = Lines(Affect("z", Add(Const 3, Const 4)),
+            Lines(Affect("x", Mult(Const 2, Var "x")),
+            Skip)) ;;
+(* z := 3 + 4 ; x := 2* x *)
+
+let prog3 = Lines(Affect("n", Const 3),
+            Lines(Cond(
+                      InfEqual(Var "n", Const 4),
+                      Affect("n", Add(Mult(Const 2, Var "n"), Const 3)),
+                      Affect("n", Add(Var "n", Const 1))),
+            Skip));;
+(* n := 3; if (n <= 4) then n:= 2*n+3 else n:= n+1 *)
+
+let prog4 = Lines(Repeat(Const 10, Affect("x", Add(Var "x", Const 1))),
+            Skip);;
+(* repeat 10 do x := x+1 od *)
+
+(* Question 3 *)
+
+
+
+
+
+(* Question 1 *)
