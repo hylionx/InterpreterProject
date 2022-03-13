@@ -263,9 +263,20 @@ let prog4 = Lines(Repeat(Const 10, Affect("x", Add(Var "x", Const 1))),
 (* repeat 10 do x := x+1 od *)
 
 (* Question 3 *)
+let rec prog_to_string prog =
+  match prog with
+   |Repeat (x,y) -> "(repeat "^ aexp_to_string x^") do  "^ prog_to_string y^" od"
+   |Skip -> "  "
+   |Affect(x,y) -> x^" := "^ aexp_to_string y
+   |Lines(x,y) -> prog_to_string x ^" \n "^  prog_to_string y
+   |Cond(x,y,z) ->"if ( "^bexp_to_string x^" then  "^ prog_to_string y^"else "^prog_to_string z^")"                                                                 
+ 
+;;
+
+prog_to_string prog1;;
+prog_to_string prog2;;
+prog_to_string prog3;;
+prog_to_string prog4;;
 
 
 
-
-
-(* Question 1 *)
