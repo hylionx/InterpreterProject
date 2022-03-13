@@ -232,33 +232,31 @@ binterp bexp4_3 my_valuation_1_2;; (* true *)
 (* 1.3.1 Syntaxe abstraite  *) 
 
 (* Question 1 *)
-
 type prog = 
-  Repeat of aexpr * prog
+  Repeat of aexpr * prog * prog 
   | Skip 
-  | Affect of string * aexpr
-  | Lines of prog * prog
-  | Cond of bexpr * prog * prog
+  | Affect of string * aexpr * prog
+  | Cond of bexpr * prog * prog * prog
 ;;
 
 (* Question 2 *)
 
-let prog1 = Lines(Affect("y", (Const 7)), Skip)  ;; (* y := 7 *)
+let prog1 = Affect("y", Const 7, Skip);; (* y := 7 *)
 
-let prog2 = Lines(Affect("z", Add(Const 3, Const 4)),
-            Lines(Affect("x", Mult(Const 2, Var "x")),
-            Skip)) ;;
+let prog2 = Affect("z", Add(Const 3, Const 4),
+            (Affect("x", Mult(Const 2, Var "x"),
+            Skip)));;
 (* z := 3 + 4 ; x := 2* x *)
 
-let prog3 = Lines(Affect("n", Const 3),
-            Lines(Cond(
-                      InfEqual(Var "n", Const 4),
-                      Affect("n", Add(Mult(Const 2, Var "n"), Const 3)),
-                      Affect("n", Add(Var "n", Const 1))),
-            Skip));;
+let prog3 = Affect("n", Const 3,
+            (Cond(
+                InfEqual(Var "n", Const 4),
+                Affect("n", Add(Mult(Const 2, Var "n"), Const 3), Skip),
+                Affect("n", Add(Var "n", Const 1), Skip),
+            Skip)));;
 (* n := 3; if (n <= 4) then n:= 2*n+3 else n:= n+1 *)
 
-let prog4 = Lines(Repeat(Const 10, Affect("x", Add(Var "x", Const 1))),
+let prog4 = Repeat(Const 10, Affect("x", Add(Var "x", Const 1), Skip),
             Skip);;
 (* repeat 10 do x := x+1 od *)
 
