@@ -261,20 +261,49 @@ let prog4 = Repeat(Const 10, Affect("x", Add(Var "x", Const 1), Skip),
 (* repeat 10 do x := x+1 od *)
 
 (* Question 3 *)
-let rec prog_to_string prog =
-  match prog with
-   |Repeat (x,y) -> "(repeat "^ aexp_to_string x^") do  "^ prog_to_string y^" od"
-   |Skip -> " "
-   |Affect(x,y) -> x^" := "^ aexp_to_string y
-   |Lines(x,y) -> prog_to_string x ^" \n "^  prog_to_string y
-   |Cond(x,y,z) ->"if ( "^bexp_to_string x^") then  "^ prog_to_string y^"else "^prog_to_string z^")"                                                                 
- 
+let rec make_tabs number =
+  if number = 0
+  then ""
+  else"\t" ^ make_tabs (number - 1)
 ;;
 
-prog_to_string prog1;;
-prog_to_string prog2;;
-prog_to_string prog3;;
-prog_to_string prog4;;
+let rec prog_to_string_aux prog tabs =
+  match prog with
+   |Repeat (x,y,suite) ->
+     make_tabs tabs ^ "repeat "^ aexp_to_string x ^" do\n"
+     ^ prog_to_string_aux y (tabs + 1) ^ "od"
+     ^ prog_to_string_aux suite tabs
+   |Skip -> ""
+   |Affect(x,y,Skip) ->
+     make_tabs tabs ^ x^" := "^ aexp_to_string y ^ "\n"
+   |Affect(x,y,suite) ->
+     make_tabs tabs ^ x^" := "^ aexp_to_string y ^ " ;\n"
+     ^ prog_to_string_aux suite tabs
+   |Cond(x,y,Skip,suite) ->
+     make_tabs tabs ^ "if ("^bexp_to_string x ^ ")\n"
+     ^ make_tabs tabs ^"then {\n"
+     ^ prog_to_string_aux y (tabs + 1)
+     ^ make_tabs tabs ^"}\n "
+     ^ prog_to_string_aux suite tabs ^""
+   |Cond(x,y,z,suite) ->
+     make_tabs tabs ^ "if ("^bexp_to_string x ^ ")\n"
+     ^ make_tabs tabs ^"then {\n"
+     ^ prog_to_string_aux y (tabs + 1)
+     ^ make_tabs tabs ^"}\n"
+     ^ make_tabs tabs ^"else {\n"
+     ^ prog_to_string_aux z (tabs + 1)
+     ^ make_tabs tabs ^"}\n "
+     ^ prog_to_string_aux suite tabs
+;;
+
+let prog_to_string prog =
+  prog_to_string_aux prog 0
+;;
+
+print_string (prog_to_string prog1);;
+print_string (prog_to_string prog2);;
+print_string (prog_to_string prog3);;
+print_string (prog_to_string prog4);;
 
 (*******Interpretation ******)
 (* Question 4 *)
