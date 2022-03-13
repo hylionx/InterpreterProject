@@ -264,10 +264,10 @@ let prog4 = Repeat(Const 10, Affect("x", Add(Var "x", Const 1), Skip),
 let rec prog_to_string prog =
   match prog with
    |Repeat (x,y) -> "(repeat "^ aexp_to_string x^") do  "^ prog_to_string y^" od"
-   |Skip -> "  "
+   |Skip -> " "
    |Affect(x,y) -> x^" := "^ aexp_to_string y
    |Lines(x,y) -> prog_to_string x ^" \n "^  prog_to_string y
-   |Cond(x,y,z) ->"if ( "^bexp_to_string x^" then  "^ prog_to_string y^"else "^prog_to_string z^")"                                                                 
+   |Cond(x,y,z) ->"if ( "^bexp_to_string x^") then  "^ prog_to_string y^"else "^prog_to_string z^")"                                                                 
  
 ;;
 
@@ -276,5 +276,17 @@ prog_to_string prog2;;
 prog_to_string prog3;;
 prog_to_string prog4;;
 
+(*******Interpretation ******)
+(* Question 4 *)
 
+let rec selfcompose func n =
+  match n with
+  | 0 -> fun v -> v
+  | _ -> fun v -> func (selfcompose func (n-1) v) 
+;;
 
+(* Question 5 *)
+let plus2 x =  x + 2;;
+
+let f = selfcompose plus2 10 ;;
+let calcul1 = f 0;;
