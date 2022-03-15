@@ -99,7 +99,7 @@ print_string (prog_to_string prog4);;
 let rec selfcompose func n =
   match n with
   | 0 -> fun v -> v
-  | _ -> fun v -> func (selfcompose func (n-1) v) 
+  | _ -> fun v -> func (selfcompose (func) (n-1) v) 
 ;;
 
 (* Question 5 *)
@@ -108,11 +108,39 @@ let plus2 x =  x + 2;;
 let f = selfcompose plus2 10 ;;
 let calcul1 = f 0;;
 
+
+
 (* Question 6 *)
+let rec putValuation var exp valuation =
+  match valuation with
+    [] -> [(var, ainterp exp valuation)]
+  | ((v, e)::tail) -> if v = var
+                      then (var, ainterp exp valuation)::tail
+                      else (v, e):: (putValuation var exp valuation)
+;;
+
+
 let rec exec programme valuation =
   match programme with
-  Repeat(exp, contenu, suite) -> exec suite (selfcompose exec (ainterp contenu valuation))  
+    Repeat(exp, content, next) ->
+     let rep = ainterp exp valuation in
+     let myfunc = (selfcompose (exec content)  rep) in
+    exec next (myfunc valuation)  
   | Skip -> valuation
-  | Affect of string * aexpr * prog
-  | Cond of bexpr * prog * prog * prog
+  | Affect (var, axp, next) -> exec next (putValuation var axp valuation)
+  | Cond (bxp, t, e, next) -> 
+     match binterp bxp valuation with
+       true -> exec next (exec t valuation)
+     | false -> exec next (exec e valuation)
 ;;
+
+#untrace exec;;
+exec prog1 [];;
+exec prog2 [("x", 5)];;
+exec prog3 [];;
+exec prog4 [];;
+
+
+
+
+(* Question 7 *)
