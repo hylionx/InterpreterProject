@@ -13,7 +13,7 @@ Les expressions booléennes
 type bexpr = 
   Const of bool
   | Or of bexpr * bexpr
-  | End of bexpr * bexpr
+  | And of bexpr * bexpr
   | Not of bexpr
   | Equal of aexpr * aexpr
   | InfEqual of aexpr * aexpr
@@ -22,7 +22,7 @@ type bexpr =
 (*** Question 2:   ***)
 let bexp1 = Const true;; (* vrai *)
 
-let bexp2_1 = End(Const true, Const false);; (* vrai et faux *)
+let bexp2_1 = And(Const true, Const false);; (* vrai et faux *)
 let bexp2_2 = Not (Const true);; (* non vrai *)
 let bexp2_3 = Or(Const true, Const false);; (* vrai ou faux *)
 
@@ -40,7 +40,7 @@ let rec bexp_to_string bxpr =
   match bxpr with
   | Const x  ->  string_of_bool(x)
   | Or (x,y) -> "("^ bexp_to_string x^") || ("^ bexp_to_string y^")"
-  | End (x,y) -> "("^bexp_to_string x^") && ("^ bexp_to_string y^ ")"
+  | And (x,y) -> "("^bexp_to_string x^") && ("^ bexp_to_string y^ ")"
   | Not x -> "!"^ bexp_to_string x
   | Equal (x,y) -> "("^ aexp_to_string x^") == ("^aexp_to_string y^ ")"
   | InfEqual (x,y) -> "("^ aexp_to_string x^") <= ("^aexp_to_string y^ ")"
@@ -84,7 +84,7 @@ let rec binterp bxpr valu =
   match bxpr with
   | Const x  ->  x
   | Or (x,y) -> opOr (binterp x valu) (binterp x valu)
-  | End (x,y) -> opAnd (binterp x valu) (binterp y valu)
+  | And (x,y) -> opAnd (binterp x valu) (binterp y valu)
   | Not x -> opNot (binterp x valu)
   | Equal (x,y) -> (ainterp x valu) = (ainterp y valu)
   | InfEqual (x,y) ->(ainterp x valu) <= (ainterp y valu)
