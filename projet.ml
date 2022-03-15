@@ -1,146 +1,52 @@
-#load "str.cma";;
-#use "bxpr.ml";;
+#use "prog.ml";;
 
-(*
-garbage 
+(* 1.4  Triplets de Hoare et validité *)
 
-
-let replace var replace_by input = Str.global_replace (Str.regexp_string var) replace_by input;;
-
-replace "x" "5" (aexp_to_string (expr9));;
-
-let rec replace_all my_valuation expr =
-  match my_valuation with
-  | [] -> expr
-  | (var , replace_by) :: rl -> replace_all rl (replace var (string_of_int replace_by) expr)
-;;
-
-replace_all  my_valuation (aexp_to_string (expr9));;
- *)
-
-(* 1.3.1 Syntaxe abstraite  *) 
-
-(* Question 1 *)
-type prog = 
-  Repeat of aexpr * prog * prog 
-  | Skip 
-  | Affect of string * aexpr * prog
-  | Cond of bexpr * prog * prog * prog
-;;
-
-(* Question 2 *)
-
-let prog1 = Affect("y", Const 7, Skip);; (* y := 7 *)
-
-let prog2 = Affect("z", Add(Const 3, Const 4),
-            (Affect("x", Mult(Const 2, Var "x"),
-            Skip)));;
-(* z := 3 + 4 ; x := 2* x *)
-
-let prog3 = Affect("n", Const 3,
-            (Cond(
-                InfEqual(Var "n", Const 4),
-                Affect("n", Add(Mult(Const 2, Var "n"), Const 3), Skip),
-                Affect("n", Add(Var "n", Const 1), Skip),
-            Skip)));;
-(* n := 3; if (n <= 4) then n:= 2*n+3 else n:= n+1 *)
-
-let prog4 = Repeat(Const 10, Affect("x", Add(Var "x", Const 1), Skip),
-            Skip);;
-(* repeat 10 do x := x+1 od *)
-
-(* Question 3 *)
-let rec make_tabs number =
-  if number = 0
-  then ""
-  else"\t" ^ make_tabs (number - 1)
-;;
-
-let rec prog_to_string_aux prog tabs =
-  match prog with
-   |Repeat (x,y,suite) ->
-     make_tabs tabs ^ "repeat "^ aexp_to_string x ^" do\n"
-     ^ prog_to_string_aux y (tabs + 1) ^ "od"
-     ^ prog_to_string_aux suite tabs
-   |Skip -> ""
-   |Affect(x,y,Skip) ->
-     make_tabs tabs ^ x^" := "^ aexp_to_string y ^ "\n"
-   |Affect(x,y,suite) ->
-     make_tabs tabs ^ x^" := "^ aexp_to_string y ^ " ;\n"
-     ^ prog_to_string_aux suite tabs
-   |Cond(x,y,Skip,suite) ->
-     make_tabs tabs ^ "if ("^bexp_to_string x ^ ")\n"
-     ^ make_tabs tabs ^"then {\n"
-     ^ prog_to_string_aux y (tabs + 1)
-     ^ make_tabs tabs ^"}\n "
-     ^ prog_to_string_aux suite tabs ^""
-   |Cond(x,y,z,suite) ->
-     make_tabs tabs ^ "if ("^bexp_to_string x ^ ")\n"
-     ^ make_tabs tabs ^"then {\n"
-     ^ prog_to_string_aux y (tabs + 1)
-     ^ make_tabs tabs ^"}\n"
-     ^ make_tabs tabs ^"else {\n"
-     ^ prog_to_string_aux z (tabs + 1)
-     ^ make_tabs tabs ^"}\n "
-     ^ prog_to_string_aux suite tabs
-;;
-
-let prog_to_string prog =
-  prog_to_string_aux prog 0
-;;
-
-print_string (prog_to_string prog1);;
-print_string (prog_to_string prog2);;
-print_string (prog_to_string prog3);;
-print_string (prog_to_string prog4);;
-
-(*******Interpretation ******)
-(* Question 4 *)
-let rec selfcompose func n =
-  match n with
-  | 0 -> fun v -> v
-  | _ -> fun v -> func (selfcompose (func) (n-1) v) 
-;;
-
-(* Question 5 *)
-let plus2 x =  x + 2;;
-
-let f = selfcompose plus2 10 ;;
-let calcul1 = f 0;;
-
-
-
-(* Question 6 *)
-let rec putValuation var exp valuation =
-  match valuation with
-    [] -> [(var, ainterp exp valuation)]
-  | ((v, e)::tail) -> if v = var
-                      then (var, ainterp exp valuation)::tail
-                      else (v, e):: (putValuation var exp valuation)
+(* Question 1 : *)
+type tprop =
+ Prop of bexpr
+|  And of tprop * tprop
+| Implied of tprop * tprop
+| Or of tprop * tprop
+| Not of tprop
+| Equal of aexpr * aexpr
+| NotEqual of aexpr * aexpr
+| Inf of aexpr * aexpr
+| InfEqual of aexpr * aexpr
 ;;
 
 
-let rec exec programme valuation =
-  match programme with
-    Repeat(exp, content, next) ->
-     let rep = ainterp exp valuation in
-     let myfunc = (selfcompose (exec content)  rep) in
-    exec next (myfunc valuation)  
-  | Skip -> valuation
-  | Affect (var, axp, next) -> exec next (putValuation var axp valuation)
-  | Cond (bxp, t, e, next) -> 
-     match binterp bxp valuation with
-       true -> exec next (exec t valuation)
-     | false -> exec next (exec e valuation)
+(* Question 2 : *)
+let tpropTrue = Prop (Const true);;
+let tpropFalse = Prop (Const false);;
+
+let tprop2_1 = And(tpropTrue, tpropFalse);;
+let tprop2_2 = Not(tpropTrue);;
+let tprop2_3 = Or(tpropTrue, tpropFalse);;
+let tprop2_4 = Implied(tpropFalse,tprop2_3);;
+
+let tprop3_1 = Equal(Const 2, Const 4);;
+let tprop3_2 = Equal(Add(Const 3, Const 5), Mult(Const 2, Const 4));;
+let tprop3_3 = Equal(Mult(Const 3, Var "x"), Add(Var "y", Const 1));;
+
+let tprop4_1 = InfEqual(Add(Const 3, Var "x"), Mult(Const 4, Var "y"));;
+let tprop4_2 = And(
+                   InfEqual(Const 5, Const 7),
+                   InfEqual(Add(Const 8, Const 9), Mult(Const 4, Const 5))
+                 );;
+
+let tprop5 = Implied(Equal(Var "x", Const 1), InfEqual(Var "y", Const 0));;
+
+
+(* Question 3 : *)
+let prop_to_string prop =
+   Prop(
+|  And of tprop * tprop
+| Implied of tprop * tprop
+| Or of tprop * tprop
+| Not of tprop
+| Equal of aexpr * aexpr
+| NotEqual of aexpr * aexpr
+| Inf of aexpr * aexpr
+| InfEqual of aexpr * aexpr
 ;;
-
-#untrace exec;;
-exec prog1 [];;
-exec prog2 [("x", 5)];;
-exec prog3 [];;
-exec prog4 [];;
-
-
-
-
-(* Question 7 *)
