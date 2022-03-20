@@ -1,0 +1,12 @@
+#load "str.cma";;
+#use "bxpr.ml";;
+#use "projet.ml";;
+
+type hoare_triple = 
+  Const of bool
+  | Or of bexpr * bexpr
+  | And of bexpr * bexpr
+  | Not of bexpr
+  | Equal of aexpr * aexpr
+  | InfEqual of aexpr * aexpr
+  ;;

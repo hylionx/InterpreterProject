@@ -5,7 +5,7 @@
 (* Question 1 : *)
 type tprop =
  Prop of bexpr
-|  And of tprop * tprop
+| And of tprop * tprop
 | Implied of tprop * tprop
 | Or of tprop * tprop
 | Not of tprop

@@ -1,6 +1,6 @@
 #load "str.cma";;
 #use "bxpr.ml";;
-#use "projet.ml"
+#use "projet.ml";;
 
 let prog1 = Affect("y", Const 7, Skip);; (* y := 7 *)
 
