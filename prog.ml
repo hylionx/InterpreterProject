@@ -4,32 +4,41 @@
 
 (* Question 1 *)
 type prog = 
-  Repeat of aexpr * prog * prog 
+  Repeat of aexpr * prog * prog
   | Skip 
   | Affect of string * aexpr * prog
   | Cond of bexpr * prog * prog * prog
+  | Seq of prog * prog
+
 ;;
 
 (* Question 2 *)
 
-let prog1 = Affect("y", Const 7, Skip);; (* y := 7 *)
+(* y := 7 *)
+let prog1 = Seq(Affect("y", Const 7, Skip), Skip);;
 
-let prog2 = Affect("z", Add(Const 3, Const 4),
-            (Affect("x", Mult(Const 2, Var "x"),
-            Skip)));;
 (* z := 3 + 4 ; x := 2* x *)
+let prog2 = Seq(Affect("z", Add(Const 3, Const 4),Skip), Affect("x", Mult(Const 2, Var "x"),Skip))
+;;
 
+(* n := 3; if (n <= 4) then n:= 2*n+3 else n:= n+1 *)
 let prog3 = Affect("n", Const 3,
             (Cond(
                 InfEqual(Var "n", Const 4),
-                Affect("n", Add(Mult(Const 2, Var "n"), Const 3), Skip),
-                Affect("n", Add(Var "n", Const 1), Skip),
+                Seq(Affect("n", Add(Mult(Const 2, Var "n"), Const 3), Skip),Skip),
+                Seq(Affect("n", Add(Var "n", Const 1), Skip),Skip),
             Skip)));;
-(* n := 3; if (n <= 4) then n:= 2*n+3 else n:= n+1 *)
 
-let prog4 = Repeat(Const 10, Affect("x", Add(Var "x", Const 1), Skip),
-            Skip);;
+
 (* repeat 10 do x := x+1 od *)
+let prog4 = Repeat(Const 10,
+                   Seq(Affect("x", Add(Var "x", Const 1), Skip), Skip),
+                   Skip)
+;;
+
+
+
+
 
 (* Question 3 *)
 let rec make_tabs number =
@@ -65,6 +74,10 @@ let rec prog_to_string_aux prog tabs =
      ^ prog_to_string_aux z (tabs + 1)
      ^ make_tabs tabs ^"}\n "
      ^ prog_to_string_aux suite tabs
+   |Seq(x,y) ->
+     make_tabs tabs ^"("^ prog_to_string_aux x tabs ^ "); "^ prog_to_string_aux y tabs
+        
+     
 ;;
 
 let prog_to_string prog =
@@ -119,15 +132,17 @@ let rec valuation_to_string valuation =
   match programme with
     Repeat(exp, content, next) ->
      let rep = ainterp exp valuation in
-     let myfunc = (selfcompose (exec content) rep)  in
-     print_string (valuation_to_string valuation);
-    exec next (myfunc [("res", 1);("i", 5)])
-  | Skip -> valuation
+     let myfunc = (selfcompose (exec content)  rep) in
+    exec next (myfunc valuation)  
+  | Skip -> valuation    
+  | Seq (c1,c2) -> exec c2 (exec c1 valuation)
   | Affect (var, axp, next) -> exec next (putValuation var axp valuation)
   | Cond (bxp, t, e, next) -> 
      match binterp bxp valuation with
        true -> exec next (exec t valuation)
      | false -> exec next (exec e valuation)
+  
+           
 ;;
 
 exec prog1 [];;
