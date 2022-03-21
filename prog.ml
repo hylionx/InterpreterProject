@@ -80,8 +80,9 @@ print_string (prog_to_string prog4);;
 (* Question 4 *)
 let rec selfcompose func n =
   match n with
-  | 0 -> fun v -> v
-  | _ -> fun v -> func (selfcompose (func) (n-1) v) 
+  | 0 ->  fun prog ->  prog
+  | 1 ->  fun prog ->  func prog
+  | _ ->  fun prog ->  func (selfcompose (func) (n-1) prog) 
 ;;
 
 (* Question 5 *)
@@ -97,17 +98,30 @@ let rec putValuation var exp valuation =
   match valuation with
     [] -> [(var, ainterp exp valuation)]
   | ((v, e)::tail) -> if v = var
-                      then (var, ainterp exp valuation)::tail
+                      then ((var, ainterp exp valuation)::tail)
                       else (v, e):: (putValuation var exp tail)
 ;;
 
 
-let rec exec programme valuation =
+let myfunc= (selfcompose (exec ( Affect("res", Mult(Var "res", Var "i"),
+                                                      Affect("i", Minus(Var "i", Const 1),
+                                                      Skip)))) 5);;
+myfunc [("res", 1);("i", 5)];;
+
+
+let rec valuation_to_string valuation =
+  match valuation with
+    [] -> ""
+  | ((v, e)::tail) -> "(" ^ v ^" , " ^ string_of_int e ^ ") ;  " ^ valuation_to_string tail
+;;
+
+ let rec exec programme valuation =
   match programme with
     Repeat(exp, content, next) ->
      let rep = ainterp exp valuation in
-     let myfunc = (selfcompose (exec content)  rep) in
-    exec next (myfunc valuation)  
+     let myfunc = (selfcompose (exec content) rep)  in
+     print_string (valuation_to_string valuation);
+    exec next (myfunc [("res", 1);("i", 5)])
   | Skip -> valuation
   | Affect (var, axp, next) -> exec next (putValuation var axp valuation)
   | Cond (bxp, t, e, next) -> 
@@ -122,14 +136,23 @@ exec prog3 [];;
 exec prog4 [];;
 
 (* Question 7 *)
-let rec fact value =
-  if value < 0
-  then failwith("Can't calculate with negetive value")
-  else 
-    match value with
-      0 -> 1
-    | _ -> value * (fact (value - 1))
-;;
+let init_fact v next= Affect("i", Const v,
+                             Affect("res", Const 1, next));;
 
-fact 5;;
+let prog_fact v =  init_fact v (Repeat(Const v,
+                                               Affect("res", Mult(Var "res", Var "i"),
+                                                      Affect("i", Minus(Var "i", Const 1),
+                                                      Skip)),
+                                               Skip)                  
+                                   );;
+                            
 
+let fact v = prog_fact v;;
+                                  
+                                        
+                         
+#untrace putValuation;;
+                         #untrace exec;;
+               
+                         #trace ainterp;;          
+exec (fact 5) [];;
