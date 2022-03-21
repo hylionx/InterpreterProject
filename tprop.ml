@@ -13,6 +13,7 @@ type tprop =
 | NotEqual of aexpr * aexpr
 | Inf of aexpr * aexpr
 | InfEqual of aexpr * aexpr
+
 ;;
 
 

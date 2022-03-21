@@ -1,0 +1,37 @@
+#load "str.cma";;
+#use "bxpr.ml";;
+#use "projet.ml";;
+#use "hoare_triple.ml";;
+
+type goal =
+  Context of (string*tprop)list
+  |ConclusionHoare of hoare_triple
+  |ConclusionTprop of tprop
+;;
+
+
+
+
+
+type tprop =
+ Prop of bexpr
+| And of tprop * tprop
+| Implied of tprop * tprop
+| Or of tprop * tprop
+| Not of tprop
+| Equal of aexpr * aexpr
+| NotEqual of aexpr * aexpr
+| Inf of aexpr * aexpr
+| InfEqual of aexpr * aexpr
+
+;;
+
+
+(* Question 2 : *)
+let goal1 : goal = Context([("H",
+                             Or(Prop(Const true), Prop (Const true))],
+                            Or(Prop(Const true), Prop (Const true))
+                            
+                    );;
+(*• context : [H : (P ∨ Q ⇒ R); H2 : P] conclusion : P ∨ Q*)
+ 
