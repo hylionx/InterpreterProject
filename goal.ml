@@ -1,4 +1,5 @@
 #load "str.cma";;
+
 #use "bxpr.ml";;
 #use "projet.ml";;
 #use "hoare_triple.ml";;
@@ -20,15 +21,14 @@ let conclusion1 = Or (p, q);;
 
 (* Question 2 : *)
 let goal1 = ContextTprop ( context1, conclusion1 );;
-(*• context : [H : (P ∨ Q ⇒ R); H2 : P] conclusion : P ∨ Q*)
+(*context : [H : (P \/ Q => R); H2 : P] conclusion : P \/ Q*)
 
  
 let goal2: hoare_triple = Hoare (Equal (Var "x", Const (-3)),
                                   Cond(
                                       InfEqual(Var "x", Const 0),
-                                       Affect("x", Minus(Const 0, Var "x"), Skip),
-                                       Skip, 
-                                       Skip),
+                                      Affect("x", Minus(Const 0, Var "x")),
+                                      Skip),
                                   Equal(Const 3, Var "x")              
                              )
 ;;

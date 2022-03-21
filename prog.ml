@@ -162,12 +162,5 @@ let prog_fact v =  init_fact v (Repeat(Const v,
                                    );;
                             
 
-let fact v = prog_fact v;;
-                                  
-                                        
-                         
-#untrace putValuation;;
-                         #untrace exec;;
-               
-                         #untrace ainterp;;          
+let fact v = prog_fact v;;      
 exec (fact 5) [];;
