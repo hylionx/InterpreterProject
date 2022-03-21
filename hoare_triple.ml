@@ -4,32 +4,32 @@
 
 (*question 8*)
 type hoare_triple = 
- Hoare of  tprop * prog * tprop
+  Hoare of  tprop * prog * tprop
 ;;
 
-  (* question 9 *) 
+(* question 9 *) 
 let hoare1: hoare_triple = Hoare ( Equal(Var "x", Const 2),
-               Skip,
-               Equal(Var "x", Const 2))
+                                   Skip,
+                                   Equal(Var "x", Const 2))
 ;;
 
 (* {x=2} skip {x=2} *)
 
 let hoare2: hoare_triple = Hoare( Equal(Var "x", Const 2),
-               Affect("x", Const 3, Skip),
-               InfEqual(Var "x", Const 3)
+                                  Affect("x", Const 3, Skip),
+                                  InfEqual(Var "x", Const 3)
                              )
 ;;
 
 (* {x=2} x := 3 {x <= 3} *)
 
 let hoare3: hoare_triple = Hoare (Prop (Const true),
-                Cond(
-                InfEqual(Var "x", Const 0),
-                Affect("r", Minus(Const 0, Var "x"), Skip),
-                Affect("r", Var "x", Skip),
-                Skip),
-                InfEqual(Const 0, Var "r")              
+                                  Cond(
+                                      InfEqual(Var "x", Const 0),
+                                      Affect("r", Minus(Const 0, Var "x"), Skip),
+                                      Affect("r", Var "x", Skip),
+                                      Skip),
+                                  InfEqual(Const 0, Var "r")              
                              )
 ;;
 
@@ -37,8 +37,8 @@ let hoare3: hoare_triple = Hoare (Prop (Const true),
 
 
 let hoare4: hoare_triple = Hoare (And( Equal(Var "in", Const 5), Equal(Var "out", Const 1)),
-              fact,
-              And( Equal(Var "in", Const 0), Equal(Var "out", Const 120))
+                                  fact,
+                                  And( Equal(Var "in", Const 0), Equal(Var "out", Const 120))
                              )
 ;;
 
@@ -46,12 +46,12 @@ let hoare4: hoare_triple = Hoare (And( Equal(Var "in", Const 5), Equal(Var "out"
 
 
 let fact v = Affect ("i", Const v,
-                   Affect("res", Const 1,
-                                 Repeat (Const v,
-                                         Affect("res", Mult(Var "res", Var "i"),
-                                                Affect("i", Minus(Var "i", Const 1),
-                                                       Skip)),
-                                         Skip)))
+                     Affect("res", Const 1,
+                            Repeat (Const v,
+                                    Affect("res", Mult(Var "res", Var "i"),
+                                           Affect("i", Minus(Var "i", Const 1),
+                                                  Skip)),
+                                    Skip)))
 ;;
 
 exec (fact 5) [];;
@@ -60,9 +60,9 @@ exec (fact 5) [];;
 let rec htvalid_test hoare_triple valuation =
   match hoare_triple with
     Hoare (precondition, prog, postcondition) -> (pinterp precondition valuation) &&
-                                                 (pinterp postcondition (exec prog valuation))
-                                                   
-      
+                                                   (pinterp postcondition (exec prog valuation))
+                                               
+                                               
 ;;
 
 (***** TEST ******)
@@ -71,6 +71,6 @@ htvalid_test hoare1 valuation1;;
 
 ;
   
-                   
+  
 
-                   
+  

@@ -10,29 +10,27 @@ type goal =
 
 
 
-
-
-type tprop =
- Prop of bexpr
-| And of tprop * tprop
-| Implied of tprop * tprop
-| Or of tprop * tprop
-| Not of tprop
-| Equal of aexpr * aexpr
-| NotEqual of aexpr * aexpr
-| Inf of aexpr * aexpr
-| InfEqual of aexpr * aexpr
-
-;;
-
 let p : tprop = Prop(Const true);;
 let q : tprop = Prop(Const false);;
 let r : tprop = Prop(Const true);;
+let impl : tprop = Implied ((Or (p, q)), r);;
+
+let context1 = [("H", impl) ; ("H2", p)];;
+let conclusion1 = Or (p, q);;
 
 (* Question 2 : *)
-let goal1 : goal = ContextTprop (
-                       [ ("H", Implied( Or p q), r)); ("H2", p) ],
-                       (Or (p, q))
-                     );;
+let goal1 = ContextTprop ( context1, conclusion1 );;
 (*• context : [H : (P ∨ Q ⇒ R); H2 : P] conclusion : P ∨ Q*)
+
  
+let goal2: hoare_triple = Hoare (Equal (Var "x", Const (-3)),
+                                  Cond(
+                                      InfEqual(Var "x", Const 0),
+                                       Affect("x", Minus(Const 0, Var "x"), Skip),
+                                       Skip, 
+                                       Skip),
+                                  Equal(Const 3, Var "x")              
+                             )
+;;
+
+(* {True} if x <= 0 then r := 0-x else r := x {0 <= r } *)
