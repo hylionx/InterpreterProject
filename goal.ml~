@@ -4,9 +4,8 @@
 #use "hoare_triple.ml";;
 
 type goal =
-  Context of (string*tprop)list
-  |ConclusionHoare of hoare_triple
-  |ConclusionTprop of tprop
+  ContextHoare of (string*tprop)list * hoare_triple
+  |ContextTprop of (string*tprop)list *  tprop
 ;;
 
 
@@ -26,12 +25,14 @@ type tprop =
 
 ;;
 
+let p : tprop = Prop(Const true);;
+let q : tprop = Prop(Const false);;
+let r : tprop = Prop(Const true);;
 
 (* Question 2 : *)
-let goal1 : goal = Context([("H",
-                             Or(Prop(Const true), Prop (Const true))],
-                            Or(Prop(Const true), Prop (Const true))
-                            
-                    );;
+let goal1 : goal = ContextTprop (
+                       [ ("H", Implied( Or p q), r)); ("H2", p) ],
+                       (Or (p, q))
+                     );;
 (*• context : [H : (P ∨ Q ⇒ R); H2 : P] conclusion : P ∨ Q*)
  

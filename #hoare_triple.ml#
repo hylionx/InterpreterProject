@@ -27,8 +27,7 @@ let hoare3: hoare_triple = Hoare (Prop (Const true),
                                   Cond(
                                       InfEqual(Var "x", Const 0),
                                       Affect("r", Minus(Const 0, Var "x"), Skip),
-                                      Affect("r", Var "x", Skip),
-                                      Skip),
+                                      Affect("r", Var "x", Skip)),
                                   InfEqual(Const 0, Var "r")              
                              )
 ;;
