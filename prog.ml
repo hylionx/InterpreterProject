@@ -4,36 +4,38 @@
 
 (* Question 1 *)
 type prog = 
-  Repeat of aexpr * prog * prog
+  Repeat of aexpr * prog 
   | Skip 
-  | Affect of string * aexpr * prog
-  | Cond of bexpr * prog * prog * prog
+  | Affect of string * aexpr
+  | Cond of bexpr * prog * prog
   | Seq of prog * prog
-
 ;;
 
 (* Question 2 *)
 
 (* y := 7 *)
-let prog1 = Seq(Affect("y", Const 7, Skip), Skip);;
+let prog1 = Seq(Affect("y", Const 7), Skip);;
 
 (* z := 3 + 4 ; x := 2* x *)
-let prog2 = Seq(Affect("z", Add(Const 3, Const 4),Skip), Affect("x", Mult(Const 2, Var "x"),Skip))
-;;
+let prog2 = Seq(Affect("z", Add(Const 3, Const 4)),Seq(Affect("x", Mult(Const 2, Var "x")), Skip));;
 
 (* n := 3; if (n <= 4) then n:= 2*n+3 else n:= n+1 *)
-let prog3 = Affect("n", Const 3,
-            (Cond(
-                InfEqual(Var "n", Const 4),
-                Seq(Affect("n", Add(Mult(Const 2, Var "n"), Const 3), Skip),Skip),
-                Seq(Affect("n", Add(Var "n", Const 1), Skip),Skip),
-            Skip)));;
+let prog3 = Seq(Affect("n", Const 3),
+            Seq(Cond(
+                    InfEqual(Var "n", Const 4),
+                    Seq(Affect("n", Add(Mult(Const 2, Var "n"), Const 3)),
+                        Skip),
+                    Seq(Affect("n", Add(Var "n", Const 1)),
+                        Skip)),
+                Skip));;
 
 
 (* repeat 10 do x := x+1 od *)
-let prog4 = Repeat(Const 10,
-                   Seq(Affect("x", Add(Var "x", Const 1), Skip), Skip),
-                   Skip)
+let prog4 = Seq(Repeat(Const 10,
+                       Seq(Affect("x", Add(Var "x", Const 1)),
+                           Skip)),
+              Skip)
+                
 ;;
 
 
@@ -49,33 +51,30 @@ let rec make_tabs number =
 
 let rec prog_to_string_aux prog tabs =
   match prog with
-   |Repeat (x,y,suite) ->
+   |Repeat (x,y) ->
      make_tabs tabs ^ "repeat "^ aexp_to_string x ^" do\n"
-     ^ prog_to_string_aux y (tabs + 1) ^ "od"
-     ^ prog_to_string_aux suite tabs
+     ^ prog_to_string_aux y (tabs + 1) ^ "\n"
+     ^ make_tabs tabs ^ "od"
    |Skip -> ""
-   |Affect(x,y,Skip) ->
-     make_tabs tabs ^ x^" := "^ aexp_to_string y ^ "\n"
-   |Affect(x,y,suite) ->
-     make_tabs tabs ^ x^" := "^ aexp_to_string y ^ " ;\n"
-     ^ prog_to_string_aux suite tabs
-   |Cond(x,y,Skip,suite) ->
+   |Affect(x,y) ->
+     make_tabs tabs ^ x^" := "^ aexp_to_string y
+   |Cond(x,y,Skip) ->
      make_tabs tabs ^ "if ("^bexp_to_string x ^ ")\n"
      ^ make_tabs tabs ^"then {\n"
      ^ prog_to_string_aux y (tabs + 1)
      ^ make_tabs tabs ^"}\n "
-     ^ prog_to_string_aux suite tabs ^""
-   |Cond(x,y,z,suite) ->
+   |Cond(x,y,z) ->
      make_tabs tabs ^ "if ("^bexp_to_string x ^ ")\n"
      ^ make_tabs tabs ^"then {\n"
      ^ prog_to_string_aux y (tabs + 1)
      ^ make_tabs tabs ^"}\n"
      ^ make_tabs tabs ^"else {\n"
-     ^ prog_to_string_aux z (tabs + 1)
-     ^ make_tabs tabs ^"}\n "
-     ^ prog_to_string_aux suite tabs
+     ^ prog_to_string_aux z (tabs + 1) ^ "/n"
+     ^ make_tabs tabs ^"} "
+   |Seq(x,Skip) ->
+     prog_to_string_aux x tabs
    |Seq(x,y) ->
-     make_tabs tabs ^"("^ prog_to_string_aux x tabs ^ "); "^ prog_to_string_aux y tabs
+     prog_to_string_aux x tabs ^ ";\n"^ prog_to_string_aux y tabs
         
      
 ;;
@@ -107,19 +106,13 @@ let calcul1 = f 0;;
 
 
 (* Question 6 *)
-let rec putValuation var exp valuation =
+let rec putValuation var value valuation =
   match valuation with
-    [] -> [(var, ainterp exp valuation)]
+    [] -> [(var, value)]
   | ((v, e)::tail) -> if v = var
-                      then ((var, ainterp exp valuation)::tail)
-                      else (v, e):: (putValuation var exp tail)
+                      then ((var, value)::tail)
+                      else (v, e):: (putValuation var value tail)
 ;;
-
-
-let myfunc= (selfcompose (exec ( Affect("res", Mult(Var "res", Var "i"),
-                                                      Affect("i", Minus(Var "i", Const 1),
-                                                      Skip)))) 5);;
-myfunc [("res", 1);("i", 5)];;
 
 
 let rec valuation_to_string valuation =
@@ -130,17 +123,21 @@ let rec valuation_to_string valuation =
 
  let rec exec programme valuation =
   match programme with
-    Repeat(exp, content, next) ->
+    Repeat(exp, content) ->
      let rep = ainterp exp valuation in
      let myfunc = (selfcompose (exec content)  rep) in
-    exec next (myfunc valuation)  
+    myfunc valuation 
   | Skip -> valuation    
-  | Seq (c1,c2) -> exec c2 (exec c1 valuation)
-  | Affect (var, axp, next) -> exec next (putValuation var axp valuation)
-  | Cond (bxp, t, e, next) -> 
+  | Seq (c1,c2) ->
+     let new_val = (exec c1 valuation) in
+     exec c2 new_val
+  | Affect (var, axp) ->
+     let value = (ainterp axp valuation)  in
+     putValuation var value valuation
+  | Cond (bxp, t, e) -> 
      match binterp bxp valuation with
-       true -> exec next (exec t valuation)
-     | false -> exec next (exec e valuation)
+       true -> exec t valuation
+     | false -> exec e valuation
   
            
 ;;
@@ -151,14 +148,17 @@ exec prog3 [];;
 exec prog4 [];;
 
 (* Question 7 *)
-let init_fact v next= Affect("i", Const v,
-                             Affect("res", Const 1, next));;
+let init_fact v next= Seq(Affect("i", Const v),
+                          Seq(Affect("res", Const 1),
+                              Seq(next,
+                                  Skip)
+                            )
+                        );;
 
 let prog_fact v =  init_fact v (Repeat(Const v,
-                                               Affect("res", Mult(Var "res", Var "i"),
-                                                      Affect("i", Minus(Var "i", Const 1),
-                                                      Skip)),
-                                               Skip)                  
+                                       Seq(Affect("res", Mult(Var "res", Var "i")),
+                                             Seq(Affect("i", Minus(Var "i", Const 1)),
+                                                 Skip)))              
                                    );;
                             
 
@@ -169,5 +169,5 @@ let fact v = prog_fact v;;
 #untrace putValuation;;
                          #untrace exec;;
                
-                         #trace ainterp;;          
+                         #untrace ainterp;;          
 exec (fact 5) [];;
