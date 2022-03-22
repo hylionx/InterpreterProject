@@ -38,7 +38,7 @@ let rec bool2prop e =
 let rec get_tprop_in_context context sgoal =
   match context with
     [] -> failwith("can't find " ^sgoal ^" into the context list")
-  | (str, prop)::taill ->
+  | (str, prop)::tail ->
      if str = sgoal
      then prop
      else get_tprop_in_context tail sgoal
