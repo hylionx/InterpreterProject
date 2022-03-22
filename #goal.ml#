@@ -7,7 +7,7 @@
 
 type goal =
   ContextHoare of (string*tprop)list * hoare_triple
-|ContextTprop of (string*tprop)list *  tprop
+|ContextTprop of (string*tprop)list * tprop
 ;;
 
 
