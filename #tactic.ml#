@@ -38,7 +38,7 @@ let rec bool2prop e =
 let rec get_tprop_in_context context sgoal =
   match context with
     [] -> failwith("can't find " ^sgoal ^" into the context list")
-  | (str, prop)::taill ->
+  | (str, prop)::tail ->
      if str = sgoal
      then prop
      else get_tprop_in_context tail sgoal
@@ -78,7 +78,7 @@ and rec apply_prop_tactic goal tactic =
        ContextTprop (context, Impl(p, q)::tail ) -> ContextTprop ((fresh_ident (), p)::context, q::tail)
       | _ -> failwith("can't use Impl_Intro") 
     }
-   | Not_Intro  -> print_line("la mère a hugo")
+   | Not_Intro  -> print_line("la mÃ¨re a hugo")
    | And_Elim_1 sgoal -> {
       match goal with
         ContextTprop (context, conclusion) ->
