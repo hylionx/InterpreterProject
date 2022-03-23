@@ -55,9 +55,9 @@ print_string (context_to_string context1);;
 let rec print_goal goal =
   match goal with
   | ContextHoare (context, conclusion) ->
-     print_endline ( (context_to_string context1) ^ "======================\n" ^ (hoare_triple_to_string conclusion))
+     print_endline ( (context_to_string context) ^ "======================\n" ^ (hoare_triple_to_string conclusion))
   | ContextTprop (context, conclusion) ->
-     print_endline ( (context_to_string context1) ^ (conclusion_to_string conclusion) )      
+     print_endline ( (context_to_string context) ^ (conclusion_to_string conclusion) )      
 ;;
 
 print_goal goal1;;

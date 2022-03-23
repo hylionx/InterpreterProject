@@ -43,7 +43,7 @@ let tprop5 = Implied(Equal(Var "x", Const 1), InfEqual(Var "y", Const 0));;
 let rec prop_to_string prop =
   match prop with 
    Prop(cst) -> bexp_to_string cst
-|  And(c1, c2) -> "(" ^ prop_to_string c1 ^ ")&&(" ^ prop_to_string c2 ^")"
+|  And(c1, c2) -> "(" ^ prop_to_string c1 ^ ")/\(" ^ prop_to_string c2 ^")"
 | Implied(c1,c2) -> "(" ^ prop_to_string c1 ^ ")=>(" ^ prop_to_string c2 ^")"
 | Or(c1,c2) -> "(" ^ prop_to_string c1 ^ ")\/(" ^ prop_to_string c2 ^")"
 | Not(cst) -> "¬" ^  prop_to_string cst

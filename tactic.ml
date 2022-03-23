@@ -214,4 +214,8 @@ let goal_1 = ContextTprop ( context_1, conclusion_1 );;
 print_string (context_to_string context_1);;
 
 print_goal goal_1;;
-print_goal (apply_tactic goal_1 Impl_Intro);;
+let goal_1_step_1 = apply_tactic goal_1 Impl_Intro;;
+print_goal goal_1_step_1;;
+
+let goal_1_step_2 = apply_tactic goal_1_step_1 And_Intro;;
+print_goal goal_1_step_2;;
