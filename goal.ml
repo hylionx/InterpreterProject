@@ -46,7 +46,10 @@ let rec context_to_string context =
 let rec conclusion_to_string conclusion =
   match conclusion with
   | [] -> ""
-  | tprop::tail -> "=============================\n" ^ (prop_to_string tprop) ^ (conclusion_to_string tail)
+  | tprop::tail ->
+     "\n=============================\n"
+     ^ (prop_to_string tprop)
+     ^ (conclusion_to_string tail)
 ;;
 
 
@@ -55,9 +58,16 @@ print_string (context_to_string context1);;
 let rec print_goal goal =
   match goal with
   | ContextHoare (context, conclusion) ->
-     print_endline ( (context_to_string context) ^ "======================\n" ^ (hoare_triple_to_string conclusion))
+     print_endline ( (context_to_string context)
+                     ^ "\n======================\n"
+                     ^ (hoare_triple_to_string conclusion)
+       )
+    
   | ContextTprop (context, conclusion) ->
-     print_endline ( (context_to_string context) ^ (conclusion_to_string conclusion) )      
+     print_endline (
+         (context_to_string context)
+         ^ (conclusion_to_string conclusion)
+       )      
 ;;
 
 print_goal goal1;;
@@ -65,13 +75,11 @@ print_goal goal2;;
 
 
 let fresh_ident =
-  let prefix = " H " and count = ref 0 in
+  let prefix = "H" and count = ref 0 in
   function () -> ( count := ! count + 1 ;
                    prefix ^ ( string_of_int (! count )))
 ;;
 
-
-(* Question 4 : *)
 
 (* Question 4
 
@@ -99,4 +107,5 @@ repeat 5 do
 od
 {(r = i * (i-1) / 2) /\ (n = i) /\ i = 5 + 1}
 {(r = 15) /\ (n = 6)}
+
 *)

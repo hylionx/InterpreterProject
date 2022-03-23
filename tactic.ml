@@ -211,11 +211,28 @@ let context_1 = [];;
 let conclusion_1 = [prop];;
 let goal_1 = ContextTprop ( context_1, conclusion_1 );;
 
-print_string (context_to_string context_1);;
-
 print_goal goal_1;;
 let goal_1_step_1 = apply_tactic goal_1 Impl_Intro;;
 print_goal goal_1_step_1;;
 
 let goal_1_step_2 = apply_tactic goal_1_step_1 And_Intro;;
 print_goal goal_1_step_2;;
+
+
+
+let rec apply_tactics goal tactics =
+  match tactics with
+  | [] -> goal
+  | head::tail -> let new_goal = apply_tactic goal head in
+                  (print_endline "\n__________________________________________________________________\n";
+                   print_goal new_goal;
+                   apply_tactics new_goal tail)
+;;
+
+let tactics = [
+    Impl_Intro;
+    And_Intro
+  ]
+;;
+
+print_goal (apply_tactics goal_1 tactics);;
