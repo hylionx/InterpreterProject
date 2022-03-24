@@ -62,14 +62,6 @@ let rec change_tprop_in_context context sgoal new_prop =
      else change_tprop_in_context tail sgoal new_prop
 ;;
 
-
-let rec do_imp_elim context conclusion hyp =
-  match hyp with
-    Implied(p, q) -> do_imp_elim context (conclusion@[p]) q
-  |  _ -> ContextTprop((fresh_ident (), hyp)::context, conclusion)
-  ;;
-
-
 let rec (* apply_hoare_tactic hoare tactic =
 match tactic with 
  | HSkip -> 
