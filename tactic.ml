@@ -70,7 +70,7 @@ let rec do_imp_elim context conclusion hyp =
   ;;
 
 
-let rec (* apply_hoare_tactic hoare tactic =
+(* let rec  apply_hoare_tactic hoare tactic =
 match tactic with 
  | HSkip -> 
 (
@@ -99,25 +99,25 @@ match tactic with
    failwith("it isn't hoare")
  )
 
-and*) apply_prop_tactic goal tactic =
+and*)
+
+ let rec apply_prop_tactic goal tactic =
   let (context, conclusion) = goal in
   match tactic with
    
     And_Intro -> (
     match conclusion with
-      PropConclusion (And(p, q)) ->
-       [ (context, PropConclusion p ) ; (context, PropConclusion q ) ]
-    | _ -> failwith("can't use And_Intro")
+      PropConclusion (And(p, q)) -> 
+      [ (context, PropConclusion p ) ; (context, PropConclusion q ) ]
+       | _ -> failwith("can't use And_Intro")
   )
-
-               
   | Or_Intro_1 -> (
     match conclusion with
       PropConclusion (Or(p, q)) -> [(context, PropConclusion p)]
     | _ -> failwith("can't use Or_Intro_1") 
   )
 
-                
+               
   | Or_Intro_2 -> (
     match conclusion with
       PropConclusion (Or(p, q)) -> [(context, PropConclusion q)]
@@ -139,7 +139,7 @@ and*) apply_prop_tactic goal tactic =
     | _ -> failwith("can't use Not_Intro") 
   )
 
-               
+              
   | And_Elim_1 sgoal -> (
     let hypothese = get_tprop_in_context context sgoal in
     (
@@ -168,7 +168,7 @@ and*) apply_prop_tactic goal tactic =
          | _ -> failwith("can't use Or_Elim") 
        )
   )
-
+(*
                    
   | Impl_Elim (sgoal1, sgoal2) -> (
        let hyp1 = get_tprop_in_context context sgoal1
@@ -211,7 +211,7 @@ and*) apply_prop_tactic goal tactic =
   )
                  
   | Assume prop -> [((fresh_ident (), prop)::context, conclusion)]
-                  
+  *)
   | _ -> failwith("it isn't hoare")
 ;;
 
