@@ -91,10 +91,9 @@ print_string (prog_to_string prog4);;
 (*******Interpretation ******)
 (* Question 4 *)
 let rec selfcompose func n =
-  match n with
-  | 0 ->  fun prog ->  prog
-  | 1 ->  fun prog ->  func prog
-  | _ ->  fun prog ->  func (selfcompose (func) (n-1) prog) 
+  if n <= 0
+  then prog
+  else func (selfcompose (func) (n-1) prog) 
 ;;
 
 (* Question 5 *)
@@ -164,3 +163,25 @@ let prog_fact v =  init_fact v (Repeat(Const v,
 
 let fact v = prog_fact v;;      
 exec (fact 5) [];;
+
+let fibonacci n = Seq(Affect("n", Const n),
+                      Seq(Affect("a", Const 0),
+                          Seq(Affect("b", Const 1),
+                              Seq(Repeat(
+                                      Minus(Var "n", Const 1),
+                                      Seq(Affect("c", Add(Var"a", Var "b")),
+                                          Seq(Affect("a", Var "b"),
+                                              Seq(Affect("b", Var "c"),
+                                                  Skip
+                                    )))),
+                                    Skip
+                            ))))
+;;
+
+   
+exec (fibonacci 5) [];;
+exec (fibonacci 6) [];;
+exec (fibonacci 7) [];;
+exec (fibonacci 8) [];;
+exec (fibonacci 9) [];;
+exec (fibonacci 10) [];;
