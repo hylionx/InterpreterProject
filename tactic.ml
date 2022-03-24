@@ -264,18 +264,18 @@ let tactics = [
     And_Intro;
     Impl_Intro;
     Assume p_or_q;
-    Impl_Elim "H 0" "H 2";
-    Exact "H 3";
+    Impl_Elim ("H0", "H2");
+    Exact "H3";
     Or_Intro_2;
     Exact "H 1";
     Impl_Intro;
     Assume p_or_q;
-    Impl_Elim "H 0" "H 2";
-    Exact "H 3";
+    Impl_Elim ("H0", "H2");
+    Exact "H3";
     Or_Intro_2;
-    Exact "H 1"
+    Exact "H1"
   ]
 ;;
 
-print_goal (apply_tactics goal_1 tactics);;
+apply_tactics tactics goal_1;;
 
