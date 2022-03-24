@@ -18,19 +18,21 @@ let q = Prop(Const false);;
 let r = Prop(Const true);;
 let impl = Implied ((Or (p, q)), r);;
 
-let context1 = [("H", impl) ; ("H2", p)];;
-let conclusion1 = [Or (p, q)];;
-let goal1 = ( context1, conclusion1 );;
+let context1 = [("H", impl) ; ("H1", p)];;
+let conclusion1 = PropConclusion (Or (p, q));;
+let goal1 : goal = ( context1, conclusion1 );;
 
-let goal2 = ( [],
-              Hoare (Equal (Var "x", Const (-3)),
-                    Cond(
-                        InfEqual(Var "x", Const 0),
-                        Affect("x", Minus(Const 0, Var "x")),
-                        Skip),
-                    Equal( Var "x", Const 3)              
-                )
-              )
+let goal2 : goal = ( [],
+                     HoareConclusion
+                       (Hoare (Equal (Var "x", Const (-3)),
+                               Cond(
+                                   InfEqual(Var "x", Const 0),
+                                   Affect("x", Minus(Const 0, Var "x")),
+                                   Skip),
+                               Equal( Var "x", Const 3)              
+                          )
+                       )
+                   )
 ;;
 
 
@@ -44,8 +46,8 @@ let rec context_to_string context =
 
 let rec conclusion_to_string conclusion =
   match conclusion with
-  | Prop (prop) -> prop_to_string prop
-  | Hoare (precond, prog, postcond) -> triple_to_string (precond, prog, postcond)
+  | PropConclusion (prop) -> prop_to_string prop
+  | HoareConclusion (hoare) -> hoare_triple_to_string hoare
 ;;
 
 
@@ -54,13 +56,13 @@ print_string (context_to_string context1);;
 let print_goal goal =
   match goal with
   | (context, conclusion) -> 
-  let contextStr = context_to_string context 
-                             and conclusionStr = conclusion_to_string conclusion
-                             in print_endline ( 
-                                                contextStr
-                                                ^ "\n======================\n"
-                                                ^ conclusionStr
-       )     
+     let contextStr = context_to_string context 
+     and conclusionStr = conclusion_to_string conclusion
+     in print_endline ( 
+            contextStr
+            ^ "\n======================\n"
+            ^ conclusionStr
+          )     
 ;;
 
 print_goal goal1;;
