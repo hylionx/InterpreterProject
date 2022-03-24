@@ -52,12 +52,19 @@ let rec htvalid_test hoare_triple valuation =
                                                
 ;;
 
-let rec hoare_triple_to_string hoare_triple = 
-  match hoare_triple with
-  | Hoare (precondition, prog, postcondition) -> 
+let rec triple_to_string (precondition, prog, postcondition) = 
     "{ " ^ (prop_to_string precondition) ^ " }\n"
     ^ (prog_to_string prog)
     ^ "{ " ^ (prop_to_string postcondition) ^ " }\n"
+;;
+
+
+let rec hoare_triple_to_string hoare_triple = 
+  match hoare_triple with
+  | Hoare (precondition, prog, postcondition) ->  triple_to_string (precondition, prog, postcondition)
+;;
+
+   
 
 
 (***** TEST ******)

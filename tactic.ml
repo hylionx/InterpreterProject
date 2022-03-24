@@ -17,7 +17,7 @@ And_Intro
 |HAssign
 |HIf
 |HRepeat of string
-|HCons of tprop
+|HCons of tprop * tprop
 |HSEq of tprop
 ;;
 
@@ -70,17 +70,37 @@ let rec do_imp_elim context conclusion hyp =
   ;;
 
 
-  (*let rec apply_hoare_tactic hoare tactic =
-match tactic with HSkip -> 
- | HAssign ->
- | HIf ->
- | HRepeat s ->
- | HCons p ->
- | HSEq p ->
+let rec apply_hoare_tactic hoare tactic =
+match tactic with 
+ | HSkip -> 
+(
+    match goal with
+    | ContextHoare (context, HSkip::tail) -> ContextTprop (context, (p)::(q)::tail)
+    | _ -> failwith("can't use HSkip")
+)
+ | HAssign -> 
+ (
+   failwith("can't use HAssign")
+ )
+ | HIf -> 
+ (
+   failwith("can't use HIf")
+ )
+ | HRepeat s -> 
+ (
+   failwith("can't use HRepeat")
+ )
+ | HSEq p -> 
+ (
+   failwith("can't use HSEq")
+ )
  | _ -> 
+ (
+   failwith("it isn't hoare")
+ )
 
- and*)
-let rec apply_prop_tactic goal tactic =
+and apply_prop_tactic goal tactic =
+
   match tactic with
     And_Intro -> (
     match goal with
@@ -236,3 +256,75 @@ let tactics = [
 ;;
 
 print_goal (apply_tactics goal_1 tactics);;
+
+
+  let (ct, cc) : context * conclusion = g in
+  match t with
+  | And_Intro -> (
+      match cc with 
+      | Prop(And(p1, p2)) -> [(ct, Prop(p1)); (ct, Prop(p2))]
+      | _ -> failwith "Tactic failure: Goal is not an And-formula."
+    )
+  | Or_Intro_1 -> (
+      match cc with 
+      | Prop(Or(p1, p2)) -> [(ct, Prop(p1))]
+      | _ -> failwith "Tactic failure: Goal is not an Or-formula."
+    )
+  | Or_Intro_2 -> (
+      match cc with 
+      | Prop(Or(p1, p2)) -> [(ct, Prop(p2))]
+      | _ -> failwith "Tactic failure: Goal is not an Or-formula."
+    )
+  | Impl_Intro -> (
+      match cc with 
+      | Prop(Impl(p1, p2)) -> [((fresh_ident(), p1)::ct, Prop(p2))]
+      | _ -> failwith "Tactic failure: Goal is not an Impl-formula."
+    )
+  | Not_Intro -> (
+      match cc with 
+      | Prop(Not(p1)) -> [((fresh_ident(), p1)::ct, Prop(False))]
+      | _ -> failwith "Tactic failure: Goal is not an Not-formula."
+    )
+  | And_Elim_1(h) -> (
+      match (find_prop_context h ct) with 
+      | And(p1, p2) -> [((fresh_ident(), p1)::ct, cc)]
+      | _ -> failwith "Tactic failure: Hypothesis is not an And-formula."
+    )
+  | And_Elim_2(h) -> (
+      match (find_prop_context h ct) with 
+      | And(p1, p2) -> [((fresh_ident(), p2)::ct, cc)]
+      | _ -> failwith "Tactic failure: Hypothesis is not an And-formula."
+    )
+  | Or_Elim(h) -> (
+      match (find_prop_context h ct) with 
+      | Or(p1, p2) -> [((fresh_ident(), p1)::ct, cc); ((fresh_ident(), p2)::ct, cc)]
+      | _ -> failwith "Tactic failure: Hypothesis is not an Or-formula."
+    )
+  | Impl_Elim(h1, h2) -> (
+      match (find_prop_context h1 ct) with 
+      | Impl(h1_1, h1_2) -> 
+          if h1_1 = (find_prop_context h2 ct) 
+          then [((fresh_ident(), h1_2)::ct, cc)]
+          else failwith "Tactic failure: Second hypothesis does not match the assumption of the first hypothesis."
+      | _ -> failwith "Tactic failure: Hypothesis is not an Impl-formula."
+    )
+  | Not_Elim(h1, h2) -> (
+      match (find_prop_context h1 ct) with 
+      | Not(h1_1) -> 
+          if h1_1 = (find_prop_context h2 ct) 
+          then [((fresh_ident(), False)::ct, cc)]
+          else failwith "Tactic failure: Second hypothesis does not match the body of the first hypothesis."
+      | _ -> failwith "Tactic failure: Hypothesis is not an Not-formula."
+    )
+  | Exact(h) -> (
+      match cc with
+      | Prop(p) -> 
+          if (find_prop_context h ct) = p
+          then [] (*WIN*)
+          else failwith "Tactic failure: Props are not the same."
+      | _ -> failwith "Tactic failure: The conclusion is not a logical proposition."
+    
+    )
+  | Assume(p) -> (
+      [((fresh_ident(), p)::ct, cc); (ct, Prop(p))]
+    )

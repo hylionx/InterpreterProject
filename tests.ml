@@ -62,6 +62,7 @@ let conclusion_1 = [prop];;
 let goal_1 = ContextTprop ( context_1, conclusion_1 );;
 
 print_goal goal_1;;
+
 let goal_1_step_1 = apply_tactic goal_1 Impl_Intro;;
 print_goal goal_1_step_1;;
 
