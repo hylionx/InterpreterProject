@@ -92,8 +92,8 @@ print_string (prog_to_string prog4);;
 (* Question 4 *)
 let rec selfcompose func n =
   if n <= 0
-  then prog
-  else func (selfcompose (func) (n-1) prog) 
+  then  fun prog -> prog
+  else  fun prog -> func (selfcompose (func) (n-1) prog) 
 ;;
 
 (* Question 5 *)
@@ -173,7 +173,8 @@ let fibonacci n = Seq(Affect("n", Const n),
                                           Seq(Affect("a", Var "b"),
                                               Seq(Affect("b", Var "c"),
                                                   Skip
-                                    )))),
+                                                )
+                                    ))),
                                     Skip
                             ))))
 ;;
