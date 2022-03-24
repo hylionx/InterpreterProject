@@ -102,7 +102,11 @@ let rec apply_prop_tactic goal tactic =
       ContextTprop (context, Implied(p, q)::tail ) -> ContextTprop ((fresh_ident (), p)::context, q::tail)
     | _ -> failwith("can't use Impl_Intro") 
   )
-  | Not_Intro  -> failwith("la m�re a hugo, et puis ca sert a rien !")
+  | Not_Intro -> (
+    match goal with
+       ContextTprop (context, Not(p)::tail ) -> ContextTprop ((fresh_ident (), p)::context, Prop(Const false)::tail)
+    | _ -> failwith("can't use Not_Intro") 
+  )
   | And_Elim_1 sgoal -> (
     match goal with
       ContextTprop (context, conclusion) ->
