@@ -62,15 +62,7 @@ let rec change_tprop_in_context context sgoal new_prop =
      else change_tprop_in_context tail sgoal new_prop
 ;;
 
-
-let rec do_imp_elim context conclusion hyp =
-  match hyp with
-    Implied(p, q) -> do_imp_elim context (conclusion@[p]) q
-  |  _ -> ContextTprop((fresh_ident (), hyp)::context, conclusion)
-  ;;
-
-
-let rec (* apply_hoare_tactic hoare tactic =
+(*let rec apply_hoare_tactic hoare tactic =
 match tactic with 
  | HSkip -> 
 (
@@ -99,121 +91,126 @@ match tactic with
    failwith("it isn't hoare")
  )
 
-and*) apply_prop_tactic goal tactic =
-  let (context, conclusion) = goal in
-  match tactic with
-   
-    And_Intro -> (
-    match conclusion with
-      PropConclusion (And(p, q)) ->
-       [ (context, PropConclusion p ) ; (context, PropConclusion q ) ]
-    | _ -> failwith("can't use And_Intro")
-  )
+and*)
 
-               
-  | Or_Intro_1 -> (
-    match conclusion with
-      PropConclusion (Or(p, q)) -> [(context, PropConclusion p)]
-    | _ -> failwith("can't use Or_Intro_1") 
-  )
-
-                
-  | Or_Intro_2 -> (
-    match conclusion with
-      PropConclusion (Or(p, q)) -> [(context, PropConclusion q)]
-    | _ -> failwith("can't use Or_Intro_2") 
-  )
-
-
-                
-  | Impl_Intro -> (
-    match conclusion with
-      PropConclusion (Implied(p, q)) -> [((fresh_ident (), p)::context, PropConclusion q)]
-    | _ -> failwith("can't use Impl_Intro") 
-  )
-
-                
-  | Not_Intro -> (
-    match conclusion with
-       PropConclusion (Not(p)) -> [((fresh_ident (), p)::context, PropConclusion(Prop(Const false)))]
-    | _ -> failwith("can't use Not_Intro") 
-  )
-
-               
-  | And_Elim_1 sgoal -> (
-    let hypothese = get_tprop_in_context context sgoal in
-    (
-      match hypothese with
-        And(p, q) -> [((fresh_ident (), p)::context, conclusion)]
-      | _ -> failwith("can't use And_Elim_1") 
-    )
-  )
-                      
-                      
-  | And_Elim_2 sgoal -> (
-    let hypothese = get_tprop_in_context context sgoal in
-    (
-      match hypothese with
-        And(p, q) -> [((fresh_ident (), q)::context, conclusion)]
-      | _ -> failwith("can't use And_Elim_2") 
-    )
-  )
-                      
-                      
-  | Or_Elim sgoal -> (
-       let hypothese = get_tprop_in_context context sgoal in
-       (
-         match hypothese with
-           Or(p, q) ->  [(( change_tprop_in_context context sgoal p), Or(q, p)::conclusion)]
-         | _ -> failwith("can't use Or_Elim") 
-       )
-  )
+let rec apply_prop_tactic goal tactic =
+  let (context, conclusion) = goal in (
+      match tactic with
+        
+        And_Intro -> (
+        match conclusion with
+          PropConclusion (And(p, q)) ->
+           [ (context, PropConclusion p ) ; (context, PropConclusion q ) ]
+        | _ -> failwith("can't use And_Intro")
+      )
 
                    
-  | Impl_Elim (sgoal1, sgoal2) -> (
-       let hyp1 = get_tprop_in_context context sgoal1
-       and hyp2 = get_tprop_in_context context sgoal2 in
-       (
-         match hyp1 with
-           Implied(p, q) -> if p = hyp2
-                         then [((fresh_ident(), q)::context, conclusion)]
-                         else failwith(sgoal1 ^ " don't match with " ^ sgoal2) 
+      | Or_Intro_1 -> (
+        match conclusion with
+          PropConclusion (Or(p, q)) -> [(context, PropConclusion p)]
+        | _ -> failwith("can't use Or_Intro_1") 
+      )
+
+                    
+      | Or_Intro_2 -> (
+        match conclusion with
+          PropConclusion (Or(p, q)) -> [(context, PropConclusion q)]
+        | _ -> failwith("can't use Or_Intro_2") 
+      )
+
+
+                    
+      | Impl_Intro -> (
+        match conclusion with
+          PropConclusion (Implied(p, q)) -> [((fresh_ident (), p)::context, PropConclusion q)]
+        | _ -> failwith("can't use Impl_Intro") 
+      )
+
+                    
+      | Not_Intro -> (
+        match conclusion with
+          PropConclusion (Not(p)) -> [((fresh_ident (), p)::context, PropConclusion(Prop(Const false)))]
+        | _ -> failwith("can't use Not_Intro") 
+      )
+
+                   
+      | And_Elim_1 sgoal -> (
+        let hypothese = get_tprop_in_context context sgoal in
+        (
+          match hypothese with
+            And(p, q) -> [((fresh_ident (), p)::context, conclusion)]
+          | _ -> failwith("can't use And_Elim_1") 
+        )
+      )
+                          
+                          
+      | And_Elim_2 sgoal -> (
+        let hypothese = get_tprop_in_context context sgoal in
+        (
+          match hypothese with
+            And(p, q) -> [((fresh_ident (), q)::context, conclusion)]
+          | _ -> failwith("can't use And_Elim_2") 
+        )
+      )
+                          
+                          
+      | Or_Elim sgoal -> (
+        let hypothese = get_tprop_in_context context sgoal in
+        (
+          match hypothese with
+            Or(p, q) -> [((fresh_ident(), p)::context, conclusion); ((fresh_ident(), q)::context, conclusion)]
+          | _ -> failwith("can't use Or_Elim") 
+        )
+      )
+
                        
-         | _ -> failwith("Error, hypothesis does not match") 
-       )
-    | _ -> failwith("can't use Impl_Elim") 
-  )
+      | Impl_Elim (sgoal1, sgoal2) -> (
+        let hyp1 = get_tprop_in_context context sgoal1
+        and hyp2 = get_tprop_in_context context sgoal2 in
+        (
+          match hyp1 with
+            Implied(p, q) -> if p = hyp2
+                             then [((fresh_ident(), q)::context, conclusion)]
+                             else failwith(sgoal1 ^ " don't match with " ^ sgoal2) 
+                           
+          | _ -> failwith("Error, hypothesis does not match") 
+        ) 
+      )
 
-                                
-  | Not_Elim (sgoal1, sgoal2) ->  (
-       let hyp1 = get_tprop_in_context context sgoal1
-       and hyp2 = get_tprop_in_context context sgoal2 in
-       (
-         match hyp1, hyp2 with
-           (Not p), q ->
-            if p = q
-            then  [((fresh_ident (), Prop (Const false))::context, conclusion)]
-            else failwith(sgoal1 ^ " don't match with " ^ sgoal2) 
-           
-         | _ -> failwith("can't use Not_Elim") 
-       )
-  )
+                                    
+      | Not_Elim (sgoal1, sgoal2) ->  (
+        let hyp1 = get_tprop_in_context context sgoal1
+        and hyp2 = get_tprop_in_context context sgoal2 in
+        (
+          match hyp1, hyp2 with
+            (Not p), q ->
+             if p = q
+             then  [((fresh_ident (), Prop (Const false))::context, conclusion)]
+             else failwith(sgoal1 ^ " don't match with " ^ sgoal2) 
+            
+          | _ -> failwith("can't use Not_Elim") 
+        )
+      )
 
-                                
-  | Exact sgoal -> (
-    match conclusion with
-      PropConclusion (prop) -> 
-       let hyp = get_tprop_in_context context sgoal in
-       if hyp = prop
-       then  []
-       else failwith("don't match goal")
-    | _ -> failwith("can't use Exact")
-  )
-                 
-  | Assume prop -> [((fresh_ident (), prop)::context, conclusion)]
-                  
-  | _ -> failwith("it isn't hoare")
+                                    
+      | Exact sgoal -> (
+        match conclusion with
+          PropConclusion (prop) -> 
+           let hyp = get_tprop_in_context context sgoal in
+           if hyp = prop
+           then  []
+           else failwith("don't match goal")
+        | _ -> failwith("can't use Exact")
+      )
+                     
+      | Assume prop -> ([((fresh_ident (), prop)::context, conclusion)])
+                     
+      | _ -> failwith("it isn't hoare")
+    )
 ;;
+
+
+
 
 let apply_tactic goal tactic =
   match goal with
@@ -238,27 +235,28 @@ let prop = Implied(
 ;;
 
 let context_1 = [];;
-let conclusion_1 = [prop];;
-let goal_1 = ContextTprop ( context_1, conclusion_1 );;
+let conclusion_1 = PropConclusion prop;;
+let goal_1 = ( context_1, conclusion_1 );;
 
-print_goal goal_1;;
-let goal_1_step_1 = apply_tactic goal_1 Impl_Intro;;
-print_goal goal_1_step_1;;
-
-let goal_1_step_2 = apply_tactic goal_1_step_1 And_Intro;;
-print_goal goal_1_step_2;;
-
-
-
-let rec apply_tactics goal tactics =
+let rec apply_tactics_aux tactics goals_list =
   match tactics with
-  | [] -> goal
-  | head::tail -> let new_goal = apply_tactic goal head in
-                  (print_endline "\n__________________________________________________________________\n";
-                   print_goal new_goal;
-                   apply_tactics new_goal tail)
+  | [] -> []
+  | head::tail -> (
+   
+     match goals_list with
+    | [] -> []
+    | first_goal::rest_goals -> (
+      print_endline "\n__________________________________________________________________\n";
+      print_goal (first_goal);
+      let new_goals = apply_tactic first_goal head in
+      apply_tactics_aux tail  new_goals@rest_goals
+    )
+
+  )
 ;;
 
+let apply_tactics tactics goal =  apply_tactics_aux tactics [goal];;
+     
 let p_or_q = Or(p, q);;
 
 let tactics = [
