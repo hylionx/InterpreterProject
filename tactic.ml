@@ -233,10 +233,25 @@ let rec apply_tactics goal tactics =
                    apply_tactics new_goal tail)
 ;;
 
+let p_or_q = Or(p, q);;
+
 let tactics = [
     Impl_Intro;
-    And_Intro
+    And_Intro;
+    Impl_Intro;
+    Assume p_or_q;
+    Impl_Elim "H 0" "H 2";
+    Exact "H 3";
+    Or_Intro_2;
+    Exact "H 1";
+    Impl_Intro;
+    Assume p_or_q;
+    Impl_Elim "H 0" "H 2";
+    Exact "H 3";
+    Or_Intro_2;
+    Exact "H 1"
   ]
 ;;
 
 print_goal (apply_tactics goal_1 tactics);;
+
