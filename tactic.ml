@@ -253,82 +253,25 @@ let rec apply_tactics goal tactics =
                    apply_tactics new_goal tail)
 ;;
 
+let p_or_q = Or(p, q);;
+
 let tactics = [
     Impl_Intro;
-    And_Intro
+    And_Intro;
+    Impl_Intro;
+    Assume p_or_q;
+    Impl_Elim "H 0" "H 2";
+    Exact "H 3";
+    Or_Intro_2;
+    Exact "H 1";
+    Impl_Intro;
+    Assume p_or_q;
+    Impl_Elim "H 0" "H 2";
+    Exact "H 3";
+    Or_Intro_2;
+    Exact "H 1"
   ]
 ;;
 
 print_goal (apply_tactics goal_1 tactics);;
 
-
-  let (ct, cc) : context * conclusion = g in
-  match t with
-  | And_Intro -> (
-      match cc with 
-      | Prop(And(p1, p2)) -> [(ct, Prop(p1)); (ct, Prop(p2))]
-      | _ -> failwith "Tactic failure: Goal is not an And-formula."
-    )
-  | Or_Intro_1 -> (
-      match cc with 
-      | Prop(Or(p1, p2)) -> [(ct, Prop(p1))]
-      | _ -> failwith "Tactic failure: Goal is not an Or-formula."
-    )
-  | Or_Intro_2 -> (
-      match cc with 
-      | Prop(Or(p1, p2)) -> [(ct, Prop(p2))]
-      | _ -> failwith "Tactic failure: Goal is not an Or-formula."
-    )
-  | Impl_Intro -> (
-      match cc with 
-      | Prop(Impl(p1, p2)) -> [((fresh_ident(), p1)::ct, Prop(p2))]
-      | _ -> failwith "Tactic failure: Goal is not an Impl-formula."
-    )
-  | Not_Intro -> (
-      match cc with 
-      | Prop(Not(p1)) -> [((fresh_ident(), p1)::ct, Prop(False))]
-      | _ -> failwith "Tactic failure: Goal is not an Not-formula."
-    )
-  | And_Elim_1(h) -> (
-      match (find_prop_context h ct) with 
-      | And(p1, p2) -> [((fresh_ident(), p1)::ct, cc)]
-      | _ -> failwith "Tactic failure: Hypothesis is not an And-formula."
-    )
-  | And_Elim_2(h) -> (
-      match (find_prop_context h ct) with 
-      | And(p1, p2) -> [((fresh_ident(), p2)::ct, cc)]
-      | _ -> failwith "Tactic failure: Hypothesis is not an And-formula."
-    )
-  | Or_Elim(h) -> (
-      match (find_prop_context h ct) with 
-      | Or(p1, p2) -> [((fresh_ident(), p1)::ct, cc); ((fresh_ident(), p2)::ct, cc)]
-      | _ -> failwith "Tactic failure: Hypothesis is not an Or-formula."
-    )
-  | Impl_Elim(h1, h2) -> (
-      match (find_prop_context h1 ct) with 
-      | Impl(h1_1, h1_2) -> 
-          if h1_1 = (find_prop_context h2 ct) 
-          then [((fresh_ident(), h1_2)::ct, cc)]
-          else failwith "Tactic failure: Second hypothesis does not match the assumption of the first hypothesis."
-      | _ -> failwith "Tactic failure: Hypothesis is not an Impl-formula."
-    )
-  | Not_Elim(h1, h2) -> (
-      match (find_prop_context h1 ct) with 
-      | Not(h1_1) -> 
-          if h1_1 = (find_prop_context h2 ct) 
-          then [((fresh_ident(), False)::ct, cc)]
-          else failwith "Tactic failure: Second hypothesis does not match the body of the first hypothesis."
-      | _ -> failwith "Tactic failure: Hypothesis is not an Not-formula."
-    )
-  | Exact(h) -> (
-      match cc with
-      | Prop(p) -> 
-          if (find_prop_context h ct) = p
-          then [] (*WIN*)
-          else failwith "Tactic failure: Props are not the same."
-      | _ -> failwith "Tactic failure: The conclusion is not a logical proposition."
-    
-    )
-  | Assume(p) -> (
-      [((fresh_ident(), p)::ct, cc); (ct, Prop(p))]
-    )
