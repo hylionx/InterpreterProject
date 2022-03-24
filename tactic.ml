@@ -17,7 +17,7 @@ And_Intro
 |HAssign
 |HIf
 |HRepeat of string
-|HCons of tprop
+|HCons of tprop * tprop
 |HSEq of tprop
 ;;
 
@@ -70,17 +70,37 @@ let rec do_imp_elim context conclusion hyp =
   ;;
 
 
-  (*let rec apply_hoare_tactic hoare tactic =
-match tactic with HSkip -> 
- | HAssign ->
- | HIf ->
- | HRepeat s ->
- | HCons p ->
- | HSEq p ->
+let rec apply_hoare_tactic hoare tactic =
+match tactic with 
+ | HSkip -> 
+(
+    match goal with
+    | ContextHoare (context, HSkip::tail) -> ContextTprop (context, (p)::(q)::tail)
+    | _ -> failwith("can't use HSkip")
+)
+ | HAssign -> 
+ (
+   failwith("can't use HAssign")
+ )
+ | HIf -> 
+ (
+   failwith("can't use HIf")
+ )
+ | HRepeat s -> 
+ (
+   failwith("can't use HRepeat")
+ )
+ | HSEq p -> 
+ (
+   failwith("can't use HSEq")
+ )
  | _ -> 
+ (
+   failwith("it isn't hoare")
+ )
 
- and*)
-let rec apply_prop_tactic goal tactic =
+and apply_prop_tactic goal tactic =
+
   match tactic with
     And_Intro -> (
     match goal with

@@ -19,18 +19,20 @@ let r = Prop(Const true);;
 let impl = Implied ((Or (p, q)), r);;
 
 let context1 = [("H", impl) ; ("H2", p)];;
-let conclusion1 = [Or (p, q)];;
-let goal1 = ( context1, conclusion1 );;
+let conclusion1 = PropConclusion (Or (p, q));;
+let goal1 : goal = ( context1, conclusion1 );;
 
-let goal2 = ( [],
-              Hoare (Equal (Var "x", Const (-3)),
-                    Cond(
-                        InfEqual(Var "x", Const 0),
-                        Affect("x", Minus(Const 0, Var "x")),
-                        Skip),
-                    Equal( Var "x", Const 3)              
-                )
-              )
+let goal2 : goal = ( [],
+                     HoareConclusion
+                       (Hoare (Equal (Var "x", Const (-3)),
+                               Cond(
+                                   InfEqual(Var "x", Const 0),
+                                   Affect("x", Minus(Const 0, Var "x")),
+                                   Skip),
+                               Equal( Var "x", Const 3)              
+                          )
+                       )
+                   )
 ;;
 
 
