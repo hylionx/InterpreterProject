@@ -239,11 +239,12 @@ let conclusion_1 = PropConclusion prop;;
 let goal_1 = ( context_1, conclusion_1 );;
 
 let rec apply_tactics_aux tactics goals_list =
+  
   match tactics with
   | [] -> []
   | head::tail -> (
-   
-     match goals_list with
+    
+    match goals_list with
     | [] -> []
     | first_goal::rest_goals -> (
       print_endline "\n__________________________________________________________________\n";
@@ -255,7 +256,7 @@ let rec apply_tactics_aux tactics goals_list =
   )
 ;;
 
-let apply_tactics tactics goal =  apply_tactics_aux tactics [goal];;
+let apply_tactics tactics goal = let _ = reset () in apply_tactics_aux tactics [goal];;
      
 let p_or_q = Or(p, q);;
 
@@ -264,10 +265,10 @@ let tactics = [
     And_Intro;
     Impl_Intro;
     Assume p_or_q;
-    Impl_Elim ("H1", "H3");
+    Impl_Elim ("H3", "H1");
     Exact "H3";
     Or_Intro_2;
-    Exact "H 1";
+    Exact "H1";
     Impl_Intro;
     Assume p_or_q;
     Impl_Elim ("H0", "H2");
@@ -277,5 +278,5 @@ let tactics = [
   ]
 ;;
 
-(*apply_tactics tactics goal_1;;
- *)
+apply_tactics tactics goal_1;;
+
