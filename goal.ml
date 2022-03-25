@@ -68,12 +68,15 @@ let print_goal goal =
 print_goal goal1;;
 print_goal goal2;;
 
-
+let count = ref 0;;
 let fresh_ident =
-  let prefix = "H" and count = ref 0 in
+  let prefix = "H" in
   function () -> ( count := ! count + 1 ;
                    prefix ^ ( string_of_int (! count )))
+ 
 ;;
+
+let reset = function () ->  count := 0;;
 
 
 (* Question 4
