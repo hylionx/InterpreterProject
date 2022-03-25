@@ -249,7 +249,7 @@ let rec apply_tactics_aux tactics goals_list =
       print_endline "\n__________________________________________________________________\n";
       print_goal (first_goal);
       let new_goals = apply_tactic first_goal head in
-      apply_tactics_aux tail  new_goals@rest_goals
+      apply_tactics_aux tail (new_goals@rest_goals)
     )
 
   )

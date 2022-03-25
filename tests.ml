@@ -58,38 +58,19 @@ let prop = Implied(
 
 
 let context_1 = [];;
-let conclusion_1 = [prop];;
-let goal_1 = ContextTprop ( context_1, conclusion_1 );;
+let conclusion_1 = PropConclusion prop;;
+let goal_1 = ( context_1, conclusion_1 );;
 
 print_goal goal_1;;
-
-let goal_1_step_1 = apply_tactic goal_1 Impl_Intro;;
-print_goal goal_1_step_1;;
-
-let goal_1_step_2 = apply_tactic goal_1_step_1 Impl_Intro;;
-print_goal goal_1_step_2;;
-
-let goal_1_step_3 = apply_tactic goal_1_step_2 And_Intro;;
-print_goal goal_1_step_3;;
-
-let goal_1_step_4 = apply_tactic goal_1_step_3 (Exact "H16");;
-print_goal goal_1_step_4;;
-
-let goal_1_step_5 = apply_tactic goal_1_step_4 (Exact "H15");;
-print_goal goal_1_step_5;;
-
-
-
 
 let tactics = [
     Impl_Intro;
     Impl_Intro;
     And_Intro;
-    (Exact "H2");
-    (Exact "H3")
+    (Exact "H1");
+    (Exact "H2")
   ]
 ;;
 
 
-print_goal (apply_tactics goal_1 tactics);;
-
+apply_tactics tactics goal_1;;
