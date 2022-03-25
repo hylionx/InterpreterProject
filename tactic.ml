@@ -225,8 +225,8 @@ let p = Prop(Const true);;
 let q = Prop(Const false);;
 let r = Prop(Const true);;
 
-let prop = Implied( 
-               Or(p, Implied(q, r) ),
+let prop = Implied(
+               Implied ( Or(p, q) , r),
                And(
                    (Implied(p, r)),
                    (Implied(q, r))
@@ -249,7 +249,7 @@ let rec apply_tactics_aux tactics goals_list =
       print_endline "\n__________________________________________________________________\n";
       print_goal (first_goal);
       let new_goals = apply_tactic first_goal head in
-      apply_tactics_aux tail  new_goals@rest_goals
+      apply_tactics_aux tail (new_goals@rest_goals)
     )
 
   )
@@ -265,17 +265,17 @@ let tactics = [
     Impl_Intro;
     Assume p_or_q;
     Impl_Elim ("H1", "H3");
-    Exact "H3";
-    Or_Intro_2;
-    Exact "H 1";
+    Exact "H4";
+    Or_Intro_1;
+    Exact "H2";
     Impl_Intro;
     Assume p_or_q;
-    Impl_Elim ("H0", "H2");
-    Exact "H3";
+    Impl_Elim ("H1", "H6");
+    Exact "H7";
     Or_Intro_2;
-    Exact "H1"
+    Exact "H5"
   ]
 ;;
 
-(*apply_tactics tactics goal_1;;
- *)
+apply_tactics tactics goal_1;;
+
