@@ -256,9 +256,7 @@ let prop = Implied(
              )
 ;;
 
-let context_1 = [];;
-let conclusion_1 = PropConclusion prop;;
-let goal_1 = ( context_1, conclusion_1 );;
+let prop_conclusion_1 = PropConclusion prop;;
 
 let tactics = [
     Impl_Intro;
@@ -267,18 +265,19 @@ let tactics = [
     Assume (Or(p, q));
     Impl_Elim ("H1", "H3");
     Exact "H4";
-    Or_Intro_2;
-    Exact "H2";
     Impl_Intro;
     Assume (Or(p, q));
     Impl_Elim ("H1", "H6");
     Exact "H7";
     Or_Intro_2;
-    Exact "H5"
+    Exact "H5";
+    Or_Intro_1;
+    Exact "H2";
   ]
 ;;
 
-apply_tactics tactics goal_1;;
+
+apply_tactics tactics ([], prop_conclusion_1 );;
 
 
 (* Question 4; *)
