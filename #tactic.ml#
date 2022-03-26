@@ -13,6 +13,7 @@ And_Intro
 |Not_Elim of string * string
 |Exact of string
 |Assume of tprop
+|Admit
 |HSkip
 |HAssign
 |HIf
@@ -76,42 +77,42 @@ let rec change_tprop_in_context context sgoal new_prop =
 
 
 let rec apply_hoare_tactic hoare_goal tactic =
-let (context, conclusion) = hoare_goal in (
-match (tactic, conclusion)  with 
-  | (HSkip, HoareConclusion (Hoare((precond, Skip, postcond )))) when (precond = postcond) -> []
-  | (HSkip, _) -> failwith("Error HSkip, can't use this tactis")
- 
-  | (HAssign, HoareConclusion (Hoare((precond, Affect (var, value), postcond )))) when (precond = psubst var value postcond) -> []
-  | (HAssign, _) -> failwith("Error HAssign, can't use this tactis")
+  let (context, conclusion) = hoare_goal in (
+      match (tactic, conclusion)  with 
+      | (HSkip, HoareConclusion (Hoare((precond, Skip, postcond )))) when (precond = postcond) -> []
+      | (HSkip, _) -> failwith("Error HSkip, can't use this tactis")
+                    
+      | (HAssign, HoareConclusion (Hoare((precond, Affect (var, value), postcond )))) when (precond = psubst var value postcond) -> []
+      | (HAssign, _) -> failwith("Error HAssign, can't use this tactis")
 
-  | (HIf, HoareConclusion (Hoare((precond, Cond(bexp, prog_then, prog_else), postcond )))) -> [
+      | (HIf, HoareConclusion (Hoare((precond, Cond(bexp, prog_then, prog_else), postcond )))) -> [
           (context, HoareConclusion (Hoare(And(precond, (bool2prop bexp)), prog_then, postcond)));
           (context, HoareConclusion (Hoare(And(precond, Not((bool2prop bexp))), prog_else, postcond)))
         ]
-  | (HIf, _) -> failwith("Error HIf, can't use this tactis")
-  (*
+      | (HIf, _) -> failwith("Error HIf, can't use this tactis")
+      (*
   | HRepeat s -> 
   (
     failwith("can't use HRepeat")
   )
-  *)
-  | (HSEq prog, HoareConclusion (Hoare(precond, Seq(prog1, prog2), postcond))) -> [
-        (context, HoareConclusion (Hoare(precond, prog1, prog)));
-        (context, HoareConclusion (Hoare(prog, prog2, postcond)))
-      ]
-  | (HSEq p, _) -> failwith("Error HSEq, can't use this tactis")
+       *)
+      | (HSEq prog, HoareConclusion (Hoare(precond, Seq(prog1, prog2), postcond))) -> [
+          (context, HoareConclusion (Hoare(precond, prog1, prog)));
+          (context, HoareConclusion (Hoare(prog, prog2, postcond)))
+        ]
+      | (HSEq p, _) -> failwith("Error HSEq, can't use this tactis")
 
-  | (HCons(cons_pre, cons_post), HoareConclusion (Hoare(precond, prog, postcond))) ->
-      let answer = ref [] in
-      if cons_post <> postcond
-      then answer := ([], Prop(Impl(cons_post, postcond)))::!answer;
-      answer := ([], Hoare(cons_pre, prog, cons_post))::!answer;
-      if cons_pre <> precond
-      then answer := ([], Prop(Impl(cons_pre, precond)))::!answer;
-      !answer
-  
-  | _ -> failwith("Error, unknown tactic")
-)
+      | (HCons(cons_pre, cons_post), HoareConclusion (Hoare(precond, prog, postcond))) ->
+         let answer = ref [] in
+         if cons_post <> postcond
+         then answer := ([], PropConclusion(Implied(cons_post, postcond)))::!answer;
+         answer := ([], HoareConclusion (Hoare(cons_pre, prog, cons_post)))::!answer;
+         if cons_pre <> precond
+         then answer := ([], PropConclusion(Implied(cons_pre, precond)))::!answer;
+         !answer
+         
+      | _ -> failwith("Error, unknown tactic")
+    )
 ;;
 
 let rec apply_prop_tactic prop_goal tactic =
@@ -230,7 +231,7 @@ let rec apply_prop_tactic prop_goal tactic =
         match conclusion with
         | PropConclusion(prop) -> (
           match prop with
-          | Const (_)
+          | Prop (_)
             | Equal(_, _)
             | InfEqual(_, _) -> []
           | _ -> failwith("Error Admit, can't use this tactis") 
@@ -247,29 +248,9 @@ let rec apply_prop_tactic prop_goal tactic =
 
 let apply_tactic goal tactic =
   match goal with
-    (_, HoareConclusion(_)) -> failwith("non") (*apply_hoare_tactic goal tactic *)
+    (_, HoareConclusion(_)) -> apply_hoare_tactic goal tactic
   | (_, PropConclusion(_)) -> apply_prop_tactic goal tactic
 ;;
-
-
-(* Question 3; *)
-
-let p = Prop(Const true);;
-let q = Prop(Const false);;
-let r = Prop(Const true);;
-
-let prop = Implied(
-               Implied ( Or(p, q) , r),
-               And(
-                   (Implied(p, r)),
-                   (Implied(q, r))
-                 ) 
-             )
-;;
-
-let context_1 = [];;
-let conclusion_1 = PropConclusion prop;;
-let goal_1 = ( context_1, conclusion_1 );;
 
 let rec apply_tactics_aux tactics goals_list =
   
@@ -290,20 +271,40 @@ let rec apply_tactics_aux tactics goals_list =
 ;;
 
 let apply_tactics tactics goal = let _ = reset () in apply_tactics_aux tactics [goal];;
-     
-let p_or_q = Or(p, q);;
 
-let tactics = [
+
+(* Question 3; *)
+
+(* (P \/ Q => R) => P => R) /\ (Q => R) *)
+
+let p = Prop(Const true);;
+let q = Prop(Const false);;
+let r = Prop(Const true);;
+
+let prop = Implied(
+               Implied ( Or(p, q) , r),
+               And(
+                   (Implied(p, r)),
+                   (Implied(q, r))
+                 ) 
+             )
+;;
+
+let context_1 = [];;
+let conclusion_1 = PropConclusion prop;;
+let goal_1 = ( context_1, conclusion_1 );;
+
+let prop_tactics = [
     Impl_Intro;
     And_Intro;
     Impl_Intro;
-    Assume p_or_q;
+    Assume (Or(p, q));
     Impl_Elim ("H3", "H1");
     Exact "H3";
     Or_Intro_2;
     Exact "H1";
     Impl_Intro;
-    Assume p_or_q;
+    Assume (Or(p, q));
     Impl_Elim ("H1", "H6");
     Exact "H7";
     Or_Intro_2;
@@ -311,5 +312,54 @@ let tactics = [
   ]
 ;;
 
-apply_tactics tactics goal_1;;
+apply_tactics prop_tactics goal_1;;
 
+
+(* Question 4; *)
+
+(* {x = 2} skip {x = 2} *)
+let hoare_conclusion_1 =  HoareConclusion (
+                              Hoare (
+                                  Equal(Var("x"), Const(2)), 
+                                  Skip, 
+                                  Equal(Var("x"), Const(2))
+                                )
+                            ) 
+;;
+apply_tactics [HSkip] ([], hoare_conclusion_1);;
+
+
+
+(*{y + 1 < 4} y := y + 1 {y < 4} *)
+
+let hoare_conclusion_2 =  HoareConclusion (
+                              Hoare (
+                                  InfEqual(Add(Var "y" , Const 1), Const 4), 
+                                  Affect("y", Add(Var "y" , Const 1)), 
+                                  InfEqual(Var"y", Const 4)
+                                )
+                            ) 
+;;
+apply_tactics [HAssign] ([], hoare_conclusion_2);;
+
+
+(* • {y = 5} x := y + 1 {x = 6} *)
+
+let hoare_conclusion_3 =  HoareConclusion (
+                              Hoare (
+                                  Equal(Var "y", Const 5), 
+                                  Affect("x", Add(Var "y", Const 1)), 
+                                  Equal(Var "x", Const 6)
+                                )
+                            ) 
+;;
+
+let hoare_tactics_1 = [
+    HCons(Equal(Add(Var "y", Const 1), Const 6), Equal(Var "x", Const 6));
+    Impl_Intro;
+    Admit; 
+    HAssign
+  ]
+;;
+
+apply_tactics hoare_tactics_1 ([], hoare_conclusion_2);;
