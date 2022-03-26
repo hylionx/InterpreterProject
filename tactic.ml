@@ -89,23 +89,14 @@ let rec apply_hoare_tactic context conclusion tactic =
           (context, HoareConclusion (Hoare(And(precond, Not((bool2prop bexp))), prog_else, postcond)))
         ]
       | (HIf, _) -> failwith("Error HIf, can't use this tactis")
+      (*
+      | (HRepeat s, _) -> 
       
-      | (HRepeat i, HoareConclusion (Hoare((precond, Repeat (e, prog), postcond )))) -> (
-        match postcond with 
-        | And(p, _) when ((psubst i (Const 1) p) = precond) -> [
-            context, HoareConclusion (
-              Hoare(
-                And(p, InfEqual(Var i, e)),
-                prog,
-                psubst i (Add(Var "i", Const 1)) p
-              )
-            )
-        ]
-        | _ -> failwith("Error HRepeat, can't use this tactis")
-        )
-      | (HRepeat i, _) -> failwith("Error HRepeat, can't use this tactis")
-      
-       
+          if
+          then
+          else failwith("can't use HRepeat")
+      )
+       *)
 
       | (HCons(cons_pre, cons_post), HoareConclusion (Hoare(precond, prog, postcond))) ->
          let answer = ref [] in
@@ -250,10 +241,19 @@ let rec apply_tactics_aux tactics goals_list =
   )
 ;;
 
+let rec listlength list =
+  match list with
+    [] -> 0
+  | head::tail -> 1 + listlength tail
+;;
+
+
 let apply_tactics tactics goal =
   let _ = reset () in
   let ret = apply_tactics_aux tactics [goal] in
-  print_endline("no more subgoals."); ret 
+  if ret = []
+  then ( print_endline("no more subgoals."); ret )
+  else failwith("fail to proof, there still " ^ string_of_int( listlength ret) ^" subgoals")
 ;;
 
 
@@ -385,6 +385,34 @@ apply_tactics hoare_tactics_3 ([], hoare_conclusion_3);;
 
 
 (* {True} z := x; z := z+y; u := z {u = x + y}  *)
+(*
+(*
+{{True}} 
+{{x + y = x + y}}
+  z ::= x;;
+{{z + y = x + y}}
+  z ::= z + y;;
+{{z = x + y}}
+  u ::= z 
+{{u = x + y}}.
+*)
+
+Lemma projet4 (z u x y: nat) :
+{{True}} 
+  z ::= x;;
+  z ::= z + y;;
+  u ::= z 
+{{u = x + y}}.
+Proof.
+Hoare_consequence_rule_left
+with (x + y = x + y).
+Hoare_sequence_rule with (z = x + y).
+Hoare_sequence_rule with (z + y = x + y).
+Hoare_assignment_rule.
+Hoare_assignment_rule.
+Hoare_assignment_rule.
+Qed.
+ *)
 
 let hoare_conclusion_4 =  HoareConclusion (
                               Hoare (
@@ -400,6 +428,7 @@ let hoare_conclusion_4 =  HoareConclusion (
                                     ),
                                   Equal(Var "u", Add(Var "x", Var "y"))
                                 )
+                         
                             ) 
 ;;
 
@@ -421,6 +450,39 @@ apply_tactics hoare_tactics_4 ([], hoare_conclusion_4);;
 
 
 (* {True} if v <= 0 then r := 0-v else r := v {0 <= r}  *)
+(* 
+(*
+{{True}}
+  If v <=? 0 
+{{0 <= 0- v}}
+  Then r ::= 0-v 
+{{(0 <= v) /\ (}}
+  Else r ::= v 
+  Fi
+{{0 <= r}}
+*)
+Lemma projet5 (v r: nat) :
+{{True}}
+  If v <=? 0 
+  Then r ::= 0-v 
+  Else r ::= v 
+  Fi
+{{0 <= r}}.
+Proof.
+Hoare_if_rule.
+Hoare_consequence_rule_left
+with (0 <= (0-v)).
+ Hoare_assignment_rule. 
+Hoare_consequence_rule_left
+with (0 <= v).
+Impl_Intro.
+And_Elim_2 in H.
+bool2Prop in H0. 
+lia.
+Hoare_assignment_rule.
+Qed.
+ *)
+
 
 let hoare_conclusion_5 =  HoareConclusion (
                               Hoare (
@@ -438,24 +500,14 @@ let hoare_conclusion_5 =  HoareConclusion (
 let hoare_tactics_5 = [
     HIf;
     HCons (
-      InfEqual(Const 0, Minus(Const 0, Var "v")),
-      InfEqual(Const 0, Var"r")
-    );
-    Impl_Intro;
-    And_Intro;
-    Admit;
-    Admit;
+        InfEqual(Const 0, Affect ("r", Minus (Const 0, Var "v"))),
+        
+      );
     HAssign;
-    HCons(
-      InfEqual(Const 0, Var "v"),
-      InfEqual(Const 0, Var "r")
-    );
-    Impl_Intro;
-    And_Intro;
-    Admit;
-    Not_Intro;
-    Admit;
-    HAssign
+    HCons (
+        InfEqual(Const 0,  Affect ("r", Var "v"))
+      );
+    HAssign;
   ]
 ;;
 apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
@@ -463,41 +515,9 @@ apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
 
 (* {x = y} repeat 10 do x:= x+1 od {x = y + 10}  *)
 
-let hoare_conclusion_6 =  HoareConclusion (
-                              Hoare (
-                                Equal(Var "x", Var "y"), 
-                                Repeat(Const 10, Affect ("x", Add(Var "x", Const 1))), 
-                                Equal(Var "x", Add(Var "y", Const 10))
-                              )
-                            ) 
-;;
-
-let hoare_tactics_6 = [
-  HCons(
-    Equal(Var "x", Minus(Add(Var "y", Const 1), Const 1)),
-    And(
-      Equal(Var "x", Minus(Add(Var "y", Var "i"), Const 1)),
-      Equal(Var "i", Add(Const 10, Const 1))
-    )
-  );
-  Impl_Intro;
-  Admit;
-  HRepeat("i");
-  HCons(
-    Equal(Add(Var "x", Const 1), Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1)),
-    Equal(Var "x", Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1))
-  );
-  Impl_Intro;
-  And_Intro;
-  Admit;
-  Admit;
-  HAssign;
-  Impl_Intro;
-  Admit;
-];;
-apply_tactics hoare_tactics_6 ([], hoare_conclusion_6);;
 
 
 
-(* Question 5; *)
+
+(* Question 4; *)
 
