@@ -109,6 +109,8 @@ let rec apply_hoare_tactic context conclusion tactic =
           if cons_pre <> precond
           then answer := ([], PropConclusion(Implied(cons_pre, precond)))::!answer;
           !answer
+
+      | (HCons(cons_pre, cons_post), _) -> failwith("Error HCons, can't use this tactis")
          
       | _ -> failwith("Error, unknown tactic")
 ;;
