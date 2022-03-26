@@ -89,14 +89,23 @@ let rec apply_hoare_tactic context conclusion tactic =
           (context, HoareConclusion (Hoare(And(precond, Not((bool2prop bexp))), prog_else, postcond)))
         ]
       | (HIf, _) -> failwith("Error HIf, can't use this tactis")
-      (*
-      | (HRepeat s, _) -> 
       
-          if
-          then
-          else failwith("can't use HRepeat")
-      )
-       *)
+      | (HRepeat i, HoareConclusion (Hoare((precond, Repeat (e, prog), postcond )))) -> (
+        match postcond with 
+        | And(p, _) when ((psubst i (Const 1) p) = precond) -> [
+            context, HoareConclusion (
+              Hoare(
+                And(p, InfEqual(Var i, e)),
+                prog,
+                psubst i (Add(Var "i", Const 1)) p
+              )
+            )
+        ]
+        | _ -> failwith("Error HRepeat, can't use this tactis")
+        )
+      | (HRepeat i, _) -> failwith("Error HRepeat, can't use this tactis")
+      
+       
 
       | (HCons(cons_pre, cons_post), HoareConclusion (Hoare(precond, prog, postcond))) ->
          let answer = ref [] in
@@ -429,8 +438,24 @@ let hoare_conclusion_5 =  HoareConclusion (
 let hoare_tactics_5 = [
     HIf;
     HCons (
-         Affect ("r", Minus (Const 0, Var "v")),
-      );
+      InfEqual(Const 0, Minus(Const 0, Var "v")),
+      InfEqual(Const 0, Var"r")
+    );
+    Impl_Intro;
+    And_Intro;
+    Admit;
+    Admit;
+    HAssign;
+    HCons(
+      InfEqual(Const 0, Var "v"),
+      InfEqual(Const 0, Var "r")
+    );
+    Impl_Intro;
+    And_Intro;
+    Admit;
+    Not_Intro;
+    Admit;
+    HAssign
   ]
 ;;
 apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
@@ -438,9 +463,41 @@ apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
 
 (* {x = y} repeat 10 do x:= x+1 od {x = y + 10}  *)
 
+let hoare_conclusion_6 =  HoareConclusion (
+                              Hoare (
+                                Equal(Var "x", Var "y"), 
+                                Repeat(Const 10, Affect ("x", Add(Var "x", Const 1))), 
+                                Equal(Var "x", Add(Var "y", Const 10))
+                              )
+                            ) 
+;;
+
+let hoare_tactics_6 = [
+  HCons(
+    Equal(Var "x", Minus(Add(Var "y", Const 1), Const 1)),
+    And(
+      Equal(Var "x", Minus(Add(Var "y", Var "i"), Const 1)),
+      Equal(Var "i", Add(Const 10, Const 1))
+    )
+  );
+  Impl_Intro;
+  Admit;
+  HRepeat("i");
+  HCons(
+    Equal(Add(Var "x", Const 1), Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1)),
+    Equal(Var "x", Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1))
+  );
+  Impl_Intro;
+  And_Intro;
+  Admit;
+  Admit;
+  HAssign;
+  Impl_Intro;
+  Admit;
+];;
+apply_tactics hoare_tactics_6 ([], hoare_conclusion_6);;
 
 
 
-
-(* Question 4; *)
+(* Question 5; *)
 
