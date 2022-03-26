@@ -376,6 +376,34 @@ apply_tactics hoare_tactics_3 ([], hoare_conclusion_3);;
 
 
 (* {True} z := x; z := z+y; u := z {u = x + y}  *)
+(*
+(*
+{{True}} 
+{{x + y = x + y}}
+  z ::= x;;
+{{z + y = x + y}}
+  z ::= z + y;;
+{{z = x + y}}
+  u ::= z 
+{{u = x + y}}.
+*)
+
+Lemma projet4 (z u x y: nat) :
+{{True}} 
+  z ::= x;;
+  z ::= z + y;;
+  u ::= z 
+{{u = x + y}}.
+Proof.
+Hoare_consequence_rule_left
+with (x + y = x + y).
+Hoare_sequence_rule with (z = x + y).
+Hoare_sequence_rule with (z + y = x + y).
+Hoare_assignment_rule.
+Hoare_assignment_rule.
+Hoare_assignment_rule.
+Qed.
+ *)
 
 let hoare_conclusion_4 =  HoareConclusion (
                               Hoare (
@@ -412,6 +440,39 @@ apply_tactics hoare_tactics_4 ([], hoare_conclusion_4);;
 
 
 (* {True} if v <= 0 then r := 0-v else r := v {0 <= r}  *)
+(* 
+(*
+{{True}}
+  If v <=? 0 
+{{0 <= 0- v}}
+  Then r ::= 0-v 
+{{(0 <= v) /\ (}}
+  Else r ::= v 
+  Fi
+{{0 <= r}}
+*)
+Lemma projet5 (v r: nat) :
+{{True}}
+  If v <=? 0 
+  Then r ::= 0-v 
+  Else r ::= v 
+  Fi
+{{0 <= r}}.
+Proof.
+Hoare_if_rule.
+Hoare_consequence_rule_left
+with (0 <= (0-v)).
+ Hoare_assignment_rule. 
+Hoare_consequence_rule_left
+with (0 <= v).
+Impl_Intro.
+And_Elim_2 in H.
+bool2Prop in H0. 
+lia.
+Hoare_assignment_rule.
+Qed.
+ *)
+
 
 let hoare_conclusion_5 =  HoareConclusion (
                               Hoare (
