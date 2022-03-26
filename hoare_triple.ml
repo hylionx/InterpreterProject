@@ -54,7 +54,7 @@ let rec htvalid_test hoare_triple valuation =
 
 let rec triple_to_string (precondition, prog, postcondition) = 
     "{ " ^ (prop_to_string precondition) ^ " }\n"
-    ^ (prog_to_string prog)
+    ^ "\t" ^ (prog_to_string prog) ^ "\n"
     ^ "{ " ^ (prop_to_string postcondition) ^ " }\n"
 ;;
 
