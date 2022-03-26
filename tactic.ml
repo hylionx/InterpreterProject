@@ -235,7 +235,21 @@ let apply_tactic goal tactic =
 let rec apply_tactics_aux tactics goals_list =
   
   match tactics with
-  | [] -> []
+  | [] -> 
+     if goals_list = []
+     then  [] ; print_string("No more subgoals.")
+    
+     else (
+       let (goal::tail_goals) = goals_list in
+       let (context, conclusion) = goal in
+       match conclusion, tail_goals with
+       | HoareConclusion(a, b, c), [] -> if b = unit && a = c
+                                         then print_string("No more subgoals."); []
+                                         else []
+       | PropConclusion(a) , [] -> if a = unit
+                                   then print_string("No more subgoals."); []
+                                   else []
+     )
   | head::tail -> (
     
     match goals_list with
@@ -287,6 +301,7 @@ let tactics = [
     Exact "H5";
     Or_Intro_1;
     Exact "H2";
+    Exact "H7"
   ]
 ;;
 apply_tactics tactics ([], prop_conclusion_1 );;
@@ -303,6 +318,7 @@ let hoare_conclusion_1 =  HoareConclusion (
                                 )
                             ) 
 ;;
+
 apply_tactics [HSkip] ([], hoare_conclusion_1);;
 
 
@@ -317,6 +333,7 @@ let hoare_conclusion_2 =  HoareConclusion (
                                 )
                             ) 
 ;;
+
 apply_tactics [HAssign] ([], hoare_conclusion_2);;
 
 
