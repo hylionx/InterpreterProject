@@ -428,7 +428,6 @@ let hoare_conclusion_4 =  HoareConclusion (
                                     ),
                                   Equal(Var "u", Add(Var "x", Var "y"))
                                 )
-                         
                             ) 
 ;;
 
@@ -459,6 +458,7 @@ apply_tactics hoare_tactics_4 ([], hoare_conclusion_4);;
 {{(0 <= v) /\ (}}
   Else r ::= v 
   Fi
+{{(x >= 0 /\ (! (x =? 0)) = false)}}
 {{0 <= r}}
 *)
 Lemma projet5 (v r: nat) :
@@ -500,12 +500,26 @@ let hoare_conclusion_5 =  HoareConclusion (
 let hoare_tactics_5 = [
     HIf;
     HCons (
-        InfEqual(Const 0, Affect ("r", Minus (Const 0, Var "v"))),
-        
+        InfEqual(Const 0, Minus (Const 0, Var "v")),
+        InfEqual (Const 0, Var "r")
       );
+    Impl_Intro;
+    And_Intro;
+    Admit;
+    Admit;
     HAssign;
     HCons (
-        InfEqual(Const 0,  Affect ("r", Var "v"))
+        InfEqual(Const 0, Var "v"),
+        InfEqual (Const 0, Var "r")
+      );
+    Impl_Intro;
+    And_Intro;
+    Admit;
+    Not_Intro;
+    Admit;
+    HCons (
+        InfEqual(Const 0, Var "v"),
+        InfEqual (Const 0, Var "r")
       );
     HAssign;
   ]
