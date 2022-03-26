@@ -387,8 +387,14 @@ let hoare_conclusion_5 =  HoareConclusion (
 let hoare_tactics_5 = [
     HIf;
     HCons (
-         Affect ("r", Minus (Const 0, Var "v")),
+        Affect ("r", Minus (Const 0, Var "v")),
       );
+    HAssign;
+    HCons (
+        Affect ("r", Minus (Const 0, Var "v")),
+      );
+    Impl_Intro;
+    And_Elim "H1";
   ]
 ;;
 apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
