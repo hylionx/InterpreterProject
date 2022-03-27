@@ -314,14 +314,14 @@ Hoare_consequence_rule_left with (x = 2).
 Hoare_skip_rule.
 Qed.
  *)
-
-
-let hoare_conclusion_1 =  HoareConclusion (
-                              Hoare (
+let hoare_1 = Hoare (
                                   Equal(Var "x", Const 2), 
                                   Skip, 
                                   Equal(Var "x", Const 2)
-                                )
+                );;
+
+let hoare_conclusion_1 =  HoareConclusion (
+                             hoare_1
                             ) 
 ;;
 
@@ -340,12 +340,14 @@ Hoare_assignment_rule.
 Qed.
 *)
 
-let hoare_conclusion_2 =  HoareConclusion (
-                              Hoare (
+let hoare_2 = Hoare (
                                   InfEqual(Add(Var "y" , Const 1), Const 4), 
                                   Affect("y", Add(Var "y" , Const 1)), 
                                   InfEqual(Var"y", Const 4)
-                                )
+                                );;
+
+let hoare_conclusion_2 =  HoareConclusion (
+                              hoare_2
                             ) 
 ;;
 
@@ -367,13 +369,14 @@ reflexivity.
 Hoare_assignment_rule.
 Qed.
  *)
-
-let hoare_conclusion_3 =  HoareConclusion (
-                              Hoare (
+let hoare_3 = Hoare (
                                   Equal(Var "y", Const 5), 
                                   Affect("x", Add(Var "y", Const 1)), 
                                   Equal(Var "x", Const 6)
-                                )
+                                );;
+
+let hoare_conclusion_3 =  HoareConclusion (
+                              hoare_3
                             ) 
 ;;
 
@@ -417,9 +420,7 @@ Hoare_assignment_rule.
 Hoare_assignment_rule.
 Qed.
  *)
-
-let hoare_conclusion_4 =  HoareConclusion (
-                              Hoare (
+let hoare_4 =Hoare (
                                   Prop (Const true), 
                                   Seq
                                     (
@@ -431,7 +432,10 @@ let hoare_conclusion_4 =  HoareConclusion (
                                       Affect("u", Var "z")
                                     ),
                                   Equal(Var "u", Add(Var "x", Var "y"))
-                                )
+                                );;
+
+let hoare_conclusion_4 =  HoareConclusion (
+                              hoare_4
                             ) 
 ;;
 
@@ -486,18 +490,18 @@ lia.
 Hoare_assignment_rule.
 Qed.
  *)
-
+let hoare_5 =  Hoare (
+                   Prop (Const true),
+                   Cond (
+                       InfEqual (Var "v", Const 0),
+                       Affect ("r", Minus (Const 0, Var "v")),
+                       Affect ("r", Var "v")
+                     ),
+                   InfEqual (Const 0, Var "r")
+                 );;
 
 let hoare_conclusion_5 =  HoareConclusion (
-                              Hoare (
-                                Prop (Const true),
-                                Cond (
-                                  InfEqual (Var "v", Const 0),
-                                  Affect ("r", Minus (Const 0, Var "v")),
-                                  Affect ("r", Var "v")
-                                ),
-                                InfEqual (Const 0, Var "r")
-                              )
+                             hoare_5
                             ) 
 ;;
 
@@ -532,14 +536,15 @@ apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
 
 
 (* {x = y} repeat 10 do x:= x+1 od {x = y + 10}  *)
-
-let hoare_conclusion_6 =  HoareConclusion (
-                              Hoare (
+let hoare_6 = Hoare (
                                 Equal(Var "x", Var "y"), 
                                 Repeat(Const 10, Affect ("x", Add(Var "x", Const 1))), 
                                 Equal(Var "x", Add(Var "y", Const 10))
-                              )
-                            ) 
+                              );;
+
+let hoare_conclusion_6 =  HoareConclusion (
+                              hoare_6
+                            ) ;;
 ;;
 
 let hoare_tactics_6 = [
@@ -569,16 +574,30 @@ apply_tactics hoare_tactics_6 ([], hoare_conclusion_6);;
 
 (* Question 5; *)
 
-(* dont understand *)
-let valuation1 =[("x", 2)];;
-
-htvalid_test (Hoare (
-    Equal(Var "x", Const 2), 
-    Skip, 
-    Equal(Var "x", Const 2)
-  ))
-valuation1
-;;
+(* exemple 1 *)
+htvalid_test hoare_1 [("x", 2)];;
 
 
+(* exemple 2 *)
+htvalid_test hoare_2 [("y", 2)];;
+htvalid_test hoare_2 [("y", -2)];;
+htvalid_test hoare_2 [("y", -5)];;
 
+(* exemple 3 *)
+htvalid_test hoare_3 [("y", 5)];;
+
+(* exemple 4 *)
+htvalid_test hoare_4 [("x", 5);("y", 10)];;
+htvalid_test hoare_4 [("x", -5);("y", 10)];;
+htvalid_test hoare_4 [("x", -5);("y", 8)];;
+htvalid_test hoare_4 [("x", 5);("y", 8)];;
+
+(* exemple 5 *)
+htvalid_test hoare_5 [("v", 2)];;
+htvalid_test hoare_5 [("v", -2)];;
+
+(* exemple 6 *)
+htvalid_test hoare_6 [("x", 2);("y", 2)];;
+htvalid_test hoare_6 [("x", 5);("y", 5)];;
+htvalid_test hoare_6 [("x", 25);("y", 25)];;
+htvalid_test hoare_6 [("x", 50);("y", 50)];;
