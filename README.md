@@ -19,3 +19,8 @@ Le dossier projet est composé de plusieurs fichiers .ml:
 	- tests.ml
  	- tmp.ml
 	- tprop.ml
+
+Compiler dans un premier temps le fichier aexpr en faisant CTRL + C + B 
+puis faire dans l'ordre suivant: 
+bexpr -> prog -> tprop -> hoare_triple -> goal -> tactic pour que tout compile correctement.
+
