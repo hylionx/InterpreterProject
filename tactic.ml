@@ -574,30 +574,49 @@ apply_tactics hoare_tactics_6 ([], hoare_conclusion_6);;
 
 (* Question 5; *)
 
+let rec htvalid_multiple_test hoare_triple valuations = 
+  match valuations with
+  | [] -> true
+  | head::tail -> (htvalid_test hoare_triple head) && (htvalid_multiple_test hoare_triple tail)
+;;
+
+
+
 (* exemple 1 *)
-htvalid_test hoare_1 [("x", 2)];;
+htvalid_multiple_test hoare_1 [[("x", 2)]];;
 
 
 (* exemple 2 *)
-htvalid_test hoare_2 [("y", 2)];;
-htvalid_test hoare_2 [("y", -2)];;
-htvalid_test hoare_2 [("y", -5)];;
+htvalid_multiple_test hoare_2 [
+    [("y", 2)]; [("y", -2)];
+    [("y", -5)]
+  ]
+;;
 
 (* exemple 3 *)
-htvalid_test hoare_3 [("y", 5)];;
+htvalid_multiple_test hoare_3 [[("y", 5)]];;
 
 (* exemple 4 *)
-htvalid_test hoare_4 [("x", 5);("y", 10)];;
-htvalid_test hoare_4 [("x", -5);("y", 10)];;
-htvalid_test hoare_4 [("x", -5);("y", 8)];;
-htvalid_test hoare_4 [("x", 5);("y", 8)];;
+htvalid_multiple_test hoare_4 [
+    [("x", 5);("y", 10)];
+    [("x", -5);("y", 10)];
+    [("x", -5);("y", 8)];
+    [("x", 5);("y", 8)]
+  ]
+;;
 
 (* exemple 5 *)
-htvalid_test hoare_5 [("v", 2)];;
-htvalid_test hoare_5 [("v", -2)];;
+htvalid_multiple_test hoare_5 [
+    [("v", 2)];
+    [("v", -2)]
+  ]
+;;
 
 (* exemple 6 *)
-htvalid_test hoare_6 [("x", 2);("y", 2)];;
-htvalid_test hoare_6 [("x", 5);("y", 5)];;
-htvalid_test hoare_6 [("x", 25);("y", 25)];;
-htvalid_test hoare_6 [("x", 50);("y", 50)];;
+htvalid_multiple_test hoare_6 [
+    [("x", 2);("y", 2)];
+    [("x", 5);("y", 5)];
+    [("x", 25);("y", 25)];
+    [("x", 50);("y", 50)]
+  ]
+;;
