@@ -16,11 +16,9 @@ Le dossier projet est composé de plusieurs fichiers .ml:
 	- prog.ml
 	- projet.ml
 	- tactic.ml
-	- tests.ml
- 	- tmp.ml
 	- tprop.ml
 
-Compiler dans un premier temps le fichier aexpr en faisant CTRL + C + B 
+Testez dans un premier temps le fichier aexpr en faisant CTRL + C + B dans emacs
 puis faire dans l'ordre suivant: 
 bexpr -> prog -> tprop -> hoare_triple -> goal -> tactic pour que tout compile correctement.
 
