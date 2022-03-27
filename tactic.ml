@@ -99,9 +99,7 @@ let rec apply_hoare_tactic context conclusion tactic =
                          psubst i (Add(Var "i", Const 1)) p
                        )
                    )
-      ]
-    | _ -> failwith("Error HRepeat, can't use this tactis")
-  
+      ]  
   | (HRepeat i, _) -> failwith("Error HRepeat, can't use this tactis")
 
   | (HCons(cons_pre, cons_post), HoareConclusion (Hoare(precond, prog, postcond))) ->
