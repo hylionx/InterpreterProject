@@ -529,9 +529,39 @@ apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
 
 (* {x = y} repeat 10 do x:= x+1 od {x = y + 10}  *)
 
+let hoare_conclusion_6 =  HoareConclusion (
+                              Hoare (
+                                Equal(Var "x", Var "y"), 
+                                Repeat(Const 10, Affect ("x", Add(Var "x", Const 1))), 
+                                Equal(Var "x", Add(Var "y", Const 10))
+                              )
+                            ) 
+;;
 
-
-
+let hoare_tactics_6 = [
+  HCons(
+    Equal(Var "x", Minus(Add(Var "y", Const 1), Const 1)),
+    And(
+      Equal(Var "x", Minus(Add(Var "y", Var "i"), Const 1)),
+      Equal(Var "i", Add(Const 10, Const 1))
+    )
+  );
+  Impl_Intro;
+  Admit;
+  HRepeat("i");
+  HCons(
+    Equal(Add(Var "x", Const 1), Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1)),
+    Equal(Var "x", Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1))
+  );
+  Impl_Intro;
+  And_Intro;
+  Admit;
+  Admit;
+  HAssign;
+  Impl_Intro;
+  Admit;
+];;
+apply_tactics hoare_tactics_6 ([], hoare_conclusion_6);;
 
 (* Question 4; *)
 
