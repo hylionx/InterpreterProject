@@ -30,7 +30,7 @@ let rec aexp_to_string expr =
 
 
 (****** Question 2 *******)
-(*** utilisation du type aexpr **)
+(*** definition de plusieurs aexpr **)
 (* Pour 2 *)
 let expr1 = Const 2;;
 (* Pour 2+3 *)

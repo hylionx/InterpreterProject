@@ -13,16 +13,18 @@ type goal = context * conclusion;;
 
 
 (* Question 2 : *)
-
+(* definition  des propositions logiques P, Q, R*)
 let p = Prop(Const true);;
 let q = Prop(Const false);;
 let r = Prop(Const true);;
 let impl = Implied ((Or (p, q)), r);;
 
+(* context : [H : (P ou  Q => R); H2 : P] conclusion : P ou Q  *)
 let context1 = [("H", impl) ; ("H1", p)];;
 let conclusion1 = PropConclusion (Or (p, q));;
 let goal1 : goal = ( context1, conclusion1 );;
 
+(*context : [] conclusion : {x = −3} if x <= 0 then 0-x else x {x = 3}   *)
 let goal2 : goal = ( [],
                      HoareConclusion
                        (Hoare (Equal (Var "x", Const (-3)),
@@ -38,22 +40,26 @@ let goal2 : goal = ( [],
 
 
 (* Question 3 : *)
-
+(* convertie un context en chaine de caractere *)
 let rec context_to_string context =
   match context with
   | [] -> ""
   | (id, prop)::rl -> id ^ " : " ^ (prop_to_string prop) ^ "\n" ^ (context_to_string rl)
 ;;
 
+(* convertie une conclusion en chaine de caractere *)
 let rec conclusion_to_string conclusion =
   match conclusion with
   | PropConclusion (prop) -> prop_to_string prop
   | HoareConclusion (hoare) -> hoare_triple_to_string hoare
 ;;
 
-
 print_string (context_to_string context1);;
-
+(* Affichage du but
+H : (P ou  Q => R)
+H2 : P
+======================
+P ou Q *)
 let print_goal goal =
   match goal with
   | (context, conclusion) -> 
@@ -65,10 +71,11 @@ let print_goal goal =
             ^ conclusionStr
           )     
 ;;
-
+(* affichage des print *)
 print_goal goal1;;
 print_goal goal2;;
 
+(* fournit une nouvelle chaine de caractere a chaque appel   *)
 let count = ref 0;;
 let fresh_ident =
   let prefix = "H" in

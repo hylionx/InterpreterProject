@@ -3,7 +3,7 @@
 (* 1.3.1 Syntaxe abstraite  *) 
 
 (* Question 1 *)
-(* type prog donnant la syntaxte abstraite des expressions arithmetiques
+(* type prog donnant la syntaxte abstraite des programmes 
         - Repeat qui execute un certain nombre de fois un programme (boucle)
         - Skip commande qui ne fait rien
         - Affect affectation d une valeur d une expression arithmetique a une variable

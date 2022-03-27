@@ -61,6 +61,7 @@ let rec triple_to_string (precondition, prog, postcondition) =
 ;;
 
 
+
 let rec hoare_triple_to_string hoare_triple = 
   match hoare_triple with
   | Hoare (precondition, prog, postcondition) ->  triple_to_string (precondition, prog, postcondition)
@@ -72,6 +73,9 @@ let rec hoare_triple_to_string hoare_triple =
 (***** TEST ******)
 let valuation1 =[("x", 2)];;
 htvalid_test hoare1 valuation1;;
+htvalid_test hoare2 valuation1;;
+htvalid_test hoare3 valuation1;;
+htvalid_test hoare4 valuation1;;
 
   
   

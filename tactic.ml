@@ -1,6 +1,6 @@
 #use "goal.ml";;
 
-
+(* Type tactic qui definit la syntaxe abstraite des tactiques *)
 type tactic = 
   And_Intro
 |Or_Intro_1
@@ -24,7 +24,7 @@ type tactic =
 ;;
 
 (* Question 1: *)
-
+(* Convertie une expressio booleenne en proposition*)
 let rec bool2prop e =
   match e with
     Const cst -> Prop e
@@ -36,7 +36,7 @@ let rec bool2prop e =
 ;;
 
 (* Question 2 : *)
-
+(* retourne la propostion dans le context  *)
 let rec get_tprop_in_context context sgoal =
   match context with
     [] -> failwith("can't find " ^sgoal ^" into the context list")
@@ -46,6 +46,7 @@ let rec get_tprop_in_context context sgoal =
      else get_tprop_in_context tail sgoal
 ;;
 
+(* supprime la propostion dans le context  *)
 let rec remove_tprop_in_context context sgoal =
   match context with
   | (str, prop)::tail ->
@@ -55,6 +56,7 @@ let rec remove_tprop_in_context context sgoal =
   | [] -> failwith("can't find " ^sgoal ^" into the context list")
 ;;
 
+(* chaange la propostion dans le context  *)
 let rec change_tprop_in_context context sgoal new_prop =
   match context with
     [] -> failwith("can't find " ^sgoal ^" into the context list")
@@ -66,17 +68,7 @@ let rec change_tprop_in_context context sgoal new_prop =
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+(* Prouve un triplet de hoare *)
 let rec apply_hoare_tactic context conclusion tactic =
   match (tactic, conclusion)  with 
   | (HSkip, HoareConclusion (Hoare((precond, Skip, postcond )))) when (precond = postcond) -> []
@@ -92,14 +84,14 @@ let rec apply_hoare_tactic context conclusion tactic =
   | (HIf, _) -> failwith("Error HIf, can't use this tactis")
               
   | (HRepeat i, HoareConclusion (Hoare((precond, Repeat (e, prog), And(p, _) )))) when ((psubst i (Const 1) p) = precond) -> [
-        context, HoareConclusion (
-                     Hoare(
-                         And(p, InfEqual(Var i, e)),
-                         prog,
-                         psubst i (Add(Var "i", Const 1)) p
-                       )
-                   )
-      ]  
+      context, HoareConclusion (
+                   Hoare(
+                       And(p, InfEqual(Var i, e)),
+                       prog,
+                       psubst i (Add(Var "i", Const 1)) p
+                     )
+                 )
+    ]  
   | (HRepeat i, _) -> failwith("Error HRepeat, can't use this tactis")
 
   | (HCons(cons_pre, cons_post), HoareConclusion (Hoare(precond, prog, postcond))) ->
@@ -123,102 +115,102 @@ let rec apply_hoare_tactic context conclusion tactic =
 ;;
 
 let rec apply_prop_tactic context conclusion tactic =
-    match (tactic, conclusion) with
-      | (And_Intro, PropConclusion (And(p, q))) -> [ (context, PropConclusion p ) ; (context, PropConclusion q ) ]
-      | (And_Intro, _) -> failwith("Error And_Intro, can't use this tactis")
-                  
-      | (Or_Intro_1, PropConclusion (Or(p, q))) -> [(context, PropConclusion p)]
-      | (Or_Intro_1, _) -> failwith("Error Or_Intro_1, can't use this tactis")
-    
-      | (Or_Intro_2, PropConclusion (Or(p, q))) -> [(context, PropConclusion q)]
-      | (Or_Intro_2, _) -> failwith("Error Or_Intro_2, can't use this tactis")
-                  
-      | (Impl_Intro, PropConclusion (Implied(p, q))) -> [((fresh_ident (), p)::context, PropConclusion q)]
-      | (Impl_Intro, _) -> failwith("Error Impl_Intro, can't use this tactis")
-                  
-      | (Not_Intro, PropConclusion (Not(p))) -> [((fresh_ident (), p)::context, PropConclusion(Prop(Const false)))]
-      | (Not_Intro, _) -> failwith("Error Not_Intro, can't use this tactis") 
-                  
-      | (And_Elim_1 sgoal, _) -> (
-        let hypothese = get_tprop_in_context context sgoal in
-        (
-          match hypothese with
-            And(p, q) -> [((fresh_ident (), p)::context, conclusion)]
-          | _ -> failwith("Error And_Elim_1, can't use this tactis") 
-        )
-      )
-                          
-      | (And_Elim_2 sgoal, _) -> (
-        let hypothese = get_tprop_in_context context sgoal in
-        (
-          match hypothese with
-            And(p, q) -> [((fresh_ident (), q)::context, conclusion)]
-          | _ -> failwith("Error And_Elim_2, can't use this tactis") 
-        )
-      )
-                          
-      | (Or_Elim sgoal, _) -> (
-        let hypothese = get_tprop_in_context context sgoal in
-        (
-          match hypothese with
-            Or(p, q) -> [((fresh_ident(), p)::context, conclusion); ((fresh_ident(), q)::context, conclusion)]
-          | _ -> failwith("Error Or_Elim, can't use this tactis") 
-        )
-      )
-                      
-      | (Impl_Elim (sgoal1, sgoal2), _) -> (
-        let hyp1 = get_tprop_in_context context sgoal1
-        and hyp2 = get_tprop_in_context context sgoal2 in
-        (
-          match hyp1 with
-            Implied(p, q) -> 
-              if p = hyp2
-              then [((fresh_ident(), q)::context, conclusion)]
-              else failwith("Error Impl_Elim, " ^ sgoal1 ^ " don't match with " ^ sgoal2) 
-                          
-          | _ -> failwith("Error Impl_Elim, can't use this tactis") 
-        ) 
-      )
-                                    
-      | (Not_Elim (sgoal1, sgoal2), _) ->  (
-        let hyp1 = get_tprop_in_context context sgoal1
-        and hyp2 = get_tprop_in_context context sgoal2 in
-        (
-          match hyp1, hyp2 with
-            (Not p), q ->
-              if p = q
-              then  [((fresh_ident (), Prop (Const false))::context, conclusion)]
-              else failwith("Error Not_Elim, " ^sgoal1 ^ " don't match with " ^ sgoal2) 
-            
-          | _ -> failwith("Error Not_Elim, can't use this tactis") 
-        )
-      )
-                                    
-      | (Exact sgoal, PropConclusion (prop)) -> 
-            let hyp = get_tprop_in_context context sgoal in
-              if hyp = prop
-              then  []
-              else failwith("Error Exact, don't match goal")
-
-      | (Exact sgoal, _) -> failwith("Error Exact, can't use this tactis") 
+  match (tactic, conclusion) with
+  | (And_Intro, PropConclusion (And(p, q))) -> [ (context, PropConclusion p ) ; (context, PropConclusion q ) ]
+  | (And_Intro, _) -> failwith("Error And_Intro, can't use this tactis")
                     
-      | (Assume prop, _) -> ([((fresh_ident (), prop)::context, conclusion)])
+  | (Or_Intro_1, PropConclusion (Or(p, q))) -> [(context, PropConclusion p)]
+  | (Or_Intro_1, _) -> failwith("Error Or_Intro_1, can't use this tactis")
+                     
+  | (Or_Intro_2, PropConclusion (Or(p, q))) -> [(context, PropConclusion q)]
+  | (Or_Intro_2, _) -> failwith("Error Or_Intro_2, can't use this tactis")
+                     
+  | (Impl_Intro, PropConclusion (Implied(p, q))) -> [((fresh_ident (), p)::context, PropConclusion q)]
+  | (Impl_Intro, _) -> failwith("Error Impl_Intro, can't use this tactis")
+                     
+  | (Not_Intro, PropConclusion (Not(p))) -> [((fresh_ident (), p)::context, PropConclusion(Prop(Const false)))]
+  | (Not_Intro, _) -> failwith("Error Not_Intro, can't use this tactis") 
+                    
+  | (And_Elim_1 sgoal, _) -> (
+    let hypothese = get_tprop_in_context context sgoal in
+    (
+      match hypothese with
+        And(p, q) -> [((fresh_ident (), p)::context, conclusion)]
+      | _ -> failwith("Error And_Elim_1, can't use this tactis") 
+    )
+  )
+                           
+  | (And_Elim_2 sgoal, _) -> (
+    let hypothese = get_tprop_in_context context sgoal in
+    (
+      match hypothese with
+        And(p, q) -> [((fresh_ident (), q)::context, conclusion)]
+      | _ -> failwith("Error And_Elim_2, can't use this tactis") 
+    )
+  )
+                           
+  | (Or_Elim sgoal, _) -> (
+    let hypothese = get_tprop_in_context context sgoal in
+    (
+      match hypothese with
+        Or(p, q) -> [((fresh_ident(), p)::context, conclusion); ((fresh_ident(), q)::context, conclusion)]
+      | _ -> failwith("Error Or_Elim, can't use this tactis") 
+    )
+  )
+                        
+  | (Impl_Elim (sgoal1, sgoal2), _) -> (
+    let hyp1 = get_tprop_in_context context sgoal1
+    and hyp2 = get_tprop_in_context context sgoal2 in
+    (
+      match hyp1 with
+        Implied(p, q) -> 
+         if p = hyp2
+         then [((fresh_ident(), q)::context, conclusion)]
+         else failwith("Error Impl_Elim, " ^ sgoal1 ^ " don't match with " ^ sgoal2) 
+        
+      | _ -> failwith("Error Impl_Elim, can't use this tactis") 
+    ) 
+  )
+                                     
+  | (Not_Elim (sgoal1, sgoal2), _) ->  (
+    let hyp1 = get_tprop_in_context context sgoal1
+    and hyp2 = get_tprop_in_context context sgoal2 in
+    (
+      match hyp1, hyp2 with
+        (Not p), q ->
+         if p = q
+         then  [((fresh_ident (), Prop (Const false))::context, conclusion)]
+         else failwith("Error Not_Elim, " ^sgoal1 ^ " don't match with " ^ sgoal2) 
+        
+      | _ -> failwith("Error Not_Elim, can't use this tactis") 
+    )
+  )
+                                     
+  | (Exact sgoal, PropConclusion (prop)) -> 
+     let hyp = get_tprop_in_context context sgoal in
+     if hyp = prop
+     then  []
+     else failwith("Error Exact, don't match goal")
 
-      | (Admit, PropConclusion(prop)) -> (
-          match prop with
-            | Prop (_)
-            | Equal(_, _)
-            | InfEqual(_, _) -> []
-            | _ -> failwith("Error Admit, can't use this tactis with this prop") 
-        )
-      | (Admit, _) -> failwith("Error Admit, can't use this tactis") 
-      
-      | _ -> failwith("Error, unknown tactic")
+  | (Exact sgoal, _) -> failwith("Error Exact, can't use this tactis") 
+                      
+  | (Assume prop, _) -> ([((fresh_ident (), prop)::context, conclusion)])
+
+  | (Admit, PropConclusion(prop)) -> (
+    match prop with
+    | Prop (_)
+      | Equal(_, _)
+      | InfEqual(_, _) -> []
+    | _ -> failwith("Error Admit, can't use this tactis with this prop") 
+  )
+  | (Admit, _) -> failwith("Error Admit, can't use this tactis") 
+                
+  | _ -> failwith("Error, unknown tactic")
 ;;
 
 
 
-
+(* permet de prouver les triplets de hoare *)
 let apply_tactic goal tactic =
   let (context, conclusion) = goal in (
       match conclusion with
@@ -263,7 +255,7 @@ let apply_tactics tactics goal =
 
 (* Question 3; *)
 
-(* (P \/ Q => R) => P => R) /\ (Q => R) *)
+(* On souhaite prouve le but suivant :  (P \/ Q => R) => P => R) /\ (Q => R) *)
 
 let p = Prop(Const true);;
 let q = Prop(Const false);;
@@ -302,6 +294,17 @@ apply_tactics tactics ([], prop_conclusion_1 );;
 
 
 (* Question 4; *)
+(* Prouver les triplets de horare suivant : 
+   • {x = 2} skip {x = 2}
+   • {y + 1 < 4} y := y + 1 {y < 4}
+   • {y = 5} x := y + 1 {x = 6}
+   • {True} z := x; z := z+y; u := z {u = x + y}
+   • {True} if v <= 0 then r := 0-v else r := v {0 <= r}
+   • {x = y} repeat 10 do x:= x+1 od {x = y + 10}
+*)
+
+
+
 
 (* {x = 2} skip {x = 2} *)
 (* code coq
@@ -315,13 +318,13 @@ Hoare_skip_rule.
 Qed.
  *)
 let hoare_1 = Hoare (
-                                  Equal(Var "x", Const 2), 
-                                  Skip, 
-                                  Equal(Var "x", Const 2)
+                  Equal(Var "x", Const 2), 
+                  Skip, 
+                  Equal(Var "x", Const 2)
                 );;
 
 let hoare_conclusion_1 =  HoareConclusion (
-                             hoare_1
+                              hoare_1
                             ) 
 ;;
 
@@ -340,11 +343,10 @@ Hoare_assignment_rule.
 Qed.
 *)
 
-let hoare_2 = Hoare (
-                                  InfEqual(Add(Var "y" , Const 1), Const 4), 
-                                  Affect("y", Add(Var "y" , Const 1)), 
-                                  InfEqual(Var"y", Const 4)
-                                );;
+let hoare_2 = Hoare ( InfEqual(Add(Var "y" , Const 1), Const 4), 
+                      Affect("y", Add(Var "y" , Const 1)), 
+                      InfEqual(Var"y", Const 4)
+                );;
 
 let hoare_conclusion_2 =  HoareConclusion (
                               hoare_2
@@ -370,10 +372,10 @@ Hoare_assignment_rule.
 Qed.
  *)
 let hoare_3 = Hoare (
-                                  Equal(Var "y", Const 5), 
-                                  Affect("x", Add(Var "y", Const 1)), 
-                                  Equal(Var "x", Const 6)
-                                );;
+                  Equal(Var "y", Const 5), 
+                  Affect("x", Add(Var "y", Const 1)), 
+                  Equal(Var "x", Const 6)
+                );;
 
 let hoare_conclusion_3 =  HoareConclusion (
                               hoare_3
@@ -421,18 +423,18 @@ Hoare_assignment_rule.
 Qed.
  *)
 let hoare_4 =Hoare (
-                                  Prop (Const true), 
-                                  Seq
-                                    (
-                                      Seq
-                                        (
-                                          Affect("z", Var "x"), 
-                                          Affect("z", Add(Var "z", Var "y"))
-                                        ),
-                                      Affect("u", Var "z")
-                                    ),
-                                  Equal(Var "u", Add(Var "x", Var "y"))
-                                );;
+                 Prop (Const true), 
+                 Seq
+                   (
+                     Seq
+                       (
+                         Affect("z", Var "x"), 
+                         Affect("z", Add(Var "z", Var "y"))
+                       ),
+                     Affect("u", Var "z")
+                   ),
+                 Equal(Var "u", Add(Var "x", Var "y"))
+               );;
 
 let hoare_conclusion_4 =  HoareConclusion (
                               hoare_4
@@ -443,8 +445,8 @@ let hoare_tactics_4 = [
     HSEq(Equal(Var "z", Add(Var "x", Var "y")));
     HSEq(Equal(Add(Var "z", Var "y"), Add(Var "x", Var "y")));
     HCons(
-      Equal(Add(Var "x", Var "y"), Add(Var "x", Var "y")),
-      Equal(Add(Var "z", Var "y"), Add(Var "x", Var "y")));
+        Equal(Add(Var "x", Var "y"), Add(Var "x", Var "y")),
+        Equal(Add(Var "z", Var "y"), Add(Var "x", Var "y")));
     Impl_Intro;
     Admit;
     HAssign;
@@ -501,7 +503,7 @@ let hoare_5 =  Hoare (
                  );;
 
 let hoare_conclusion_5 =  HoareConclusion (
-                             hoare_5
+                              hoare_5
                             ) 
 ;;
 
@@ -537,10 +539,10 @@ apply_tactics hoare_tactics_5 ([], hoare_conclusion_5);;
 
 (* {x = y} repeat 10 do x:= x+1 od {x = y + 10}  *)
 let hoare_6 = Hoare (
-                                Equal(Var "x", Var "y"), 
-                                Repeat(Const 10, Affect ("x", Add(Var "x", Const 1))), 
-                                Equal(Var "x", Add(Var "y", Const 10))
-                              );;
+                  Equal(Var "x", Var "y"), 
+                  Repeat(Const 10, Affect ("x", Add(Var "x", Const 1))), 
+                  Equal(Var "x", Add(Var "y", Const 10))
+                );;
 
 let hoare_conclusion_6 =  HoareConclusion (
                               hoare_6
@@ -548,28 +550,28 @@ let hoare_conclusion_6 =  HoareConclusion (
 ;;
 
 let hoare_tactics_6 = [
-  HCons(
-    Equal(Var "x", Minus(Add(Var "y", Const 1), Const 1)),
-    And(
-      Equal(Var "x", Minus(Add(Var "y", Var "i"), Const 1)),
-      Equal(Var "i", Add(Const 10, Const 1))
-    )
-  );
-  Impl_Intro;
-  Admit;
-  HRepeat("i");
-  HCons(
-    Equal(Add(Var "x", Const 1), Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1)),
-    Equal(Var "x", Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1))
-  );
-  Impl_Intro;
-  And_Intro;
-  Admit;
-  Admit;
-  HAssign;
-  Impl_Intro;
-  Admit;
-];;
+    HCons(
+        Equal(Var "x", Minus(Add(Var "y", Const 1), Const 1)),
+        And(
+            Equal(Var "x", Minus(Add(Var "y", Var "i"), Const 1)),
+            Equal(Var "i", Add(Const 10, Const 1))
+          )
+      );
+    Impl_Intro;
+    Admit;
+    HRepeat("i");
+    HCons(
+        Equal(Add(Var "x", Const 1), Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1)),
+        Equal(Var "x", Minus(Add(Var "y", Add(Var "i", Const 1)), Const 1))
+      );
+    Impl_Intro;
+    And_Intro;
+    Admit;
+    Admit;
+    HAssign;
+    Impl_Intro;
+    Admit;
+  ];;
 apply_tactics hoare_tactics_6 ([], hoare_conclusion_6);;
 
 (* Question 5; *)
